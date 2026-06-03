@@ -58,25 +58,69 @@ pair family scores on partial lines too.
 
 **Final score = Σ line points − floor penalties + remaining gold.** Highest wins.
 
-## Enabling GitHub Pages
+## Variants
 
-The repo ships a deploy workflow at `.github/workflows/pages.yml`. It runs on
-pushes to `main` (and the development branch) and **enables Pages automatically**
-on its first successful run (`configure-pages` with `enablement: true`), so no
-manual Settings toggle is normally required.
+The setup screen offers a **variant** chooser, and the active variant is
+encoded in the URL so you can deep-link straight into one:
 
-If your org disallows Actions from enabling Pages, turn it on once under
-**Settings → Pages → Source = GitHub Actions**.
+- `index.html` or `index.html?variant=classic` — the default Azul × Poker game.
+- `index.html?variant=ponds` — the **Ponds** variant.
+- Adding `&players=2` (1–4) starts that variant immediately, skipping the setup
+  screen (e.g. `index.html?variant=ponds&players=2`).
 
-All asset paths are relative, so the game works correctly under the
-`/<repo>/` Pages sub-path.
+### Ponds (mahjong deck)
+
+Same rules and board, but the four 52-card decks are replaced by a **full
+144-tile mahjong deck**, and the dispensers ("fabrics") are styled as ponds.
+Each tile maps to a rank/suit so the same line combos apply:
+
+| Tiles | `suit` | value(s) |
+|---|---|---|
+| Dots / Bamboo / Characters 1–9 (×4 each) | dots / bam / chr | 1–9 |
+| Winds East, South, West, North (×4) | honor | 10–13 |
+| Dragons White, Green, Red (×4) | honor | 14–16 |
+| Flowers (4) — all match one another | bonus | (match only) |
+| Seasons (4) — all match one another | bonus | (match only) |
+
+Because honors continue the value ladder and share the `honor` suit, runs and
+suited combos span the whole deck (e.g. East-South-West-North-White is a suited
+run that tops the chart — the "Grand Run"). The combos scored per line are: One
+Pair, Two Pair, Three of a Kind, Four of a Kind, Full House (three + a pair),
+Run (five in sequence), Suited (five of one suit), Suited Run, and the Grand
+Run — using the same point values as the classic table above.
+
+## Deployment & PR previews
+
+Hosting is GitHub Pages, served from the **`gh-pages` branch** (the site is
+static, so there's no build step — files are copied as-is). All asset paths are
+relative, so the game runs correctly under any Pages sub-path, including the
+per-PR preview folders.
+
+- **Production** — `.github/workflows/deploy.yml` runs on pushes to `main` and
+  publishes the site to the **root** of `gh-pages`. It uses
+  `clean-exclude: pr-*/` so live PR previews are never wiped by a production
+  deploy.
+- **PR previews** — `.github/workflows/preview.yml` runs on pull requests. On
+  open/update it deploys that PR to `gh-pages/pr-<number>/` and posts (then
+  keeps updating) a comment with the preview URL
+  `https://<owner>.github.io/<repo>/pr-<number>/`. When the PR is **closed or
+  merged**, it deletes the `pr-<number>/` folder from `gh-pages`.
+
+### One-time setup
+
+Under **Settings → Pages → Source**, choose **"Deploy from a branch"** and set
+**Branch: `gh-pages` / `/ (root)`**. The `gh-pages` branch is created
+automatically the first time `deploy.yml` runs. The default `GITHUB_TOKEN`
+provides the `contents: write` / `pull-requests: write` permissions the
+workflows need — no extra secrets required.
 
 ## Project layout
 
 ```
 index.html              # page shell + setup screen, loads the scripts
 styles.css              # setup screen + canvas styling
-src/deck.js             # cards, suits/ranks, the bag, shuffle
+src/variant.js          # variant select (?variant=): deck spec, theme, labels
+src/deck.js             # cards, suits/ranks, the bag, shuffle (built per variant)
 src/poker.js            # pure poker-hand evaluation for a line
 src/rules.js            # constants + draft/floor/gold rule helpers
 src/player.js           # Player state + controller seam (Human now, AI later)
@@ -84,13 +128,16 @@ src/game.js             # engine: rounds, turns, drafting, placement, scoring
 src/render.js           # canvas drawing + hitbox generation
 src/input.js            # clicks -> game intents
 src/main.js             # bootstrap + render loop
-tests/poker.test.html   # open in a browser to run the logic tests
+tests/poker.test.html   # open in a browser to run the classic logic tests
+tests/ponds.test.html   # open in a browser to run the ponds (mahjong) tests
 ```
 
 ## Tests
 
 Open `tests/poker.test.html` in a browser; it asserts poker evaluation, rainbow
-rules, and floor/gold math, printing pass/fail counts.
+rules, and floor/gold math, printing pass/fail counts. `tests/ponds.test.html`
+does the same for the mahjong deck (composition, value ladder, combos, and the
+flower/season matching rule).
 
 ## Extending with AI players
 

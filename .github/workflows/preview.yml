@@ -1,0 +1,97 @@
+name: PR Preview
+
+on:
+  pull_request:
+    branches: ["main"]
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+# Coalesce rapid pushes to the same PR; only the latest preview matters.
+concurrency:
+  group: preview-${{ github.event.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assemble static site
+        run: |
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='_site' \
+            ./ _site/
+          touch _site/.nojekyll
+
+      - name: Deploy preview to gh-pages/pr-<number>
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: _site
+          branch: gh-pages
+          target-folder: pr-${{ github.event.number }}
+          clean: true
+
+      - name: Post / update preview URL on the PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.issue.number;
+            const owner = context.repo.owner.toLowerCase();
+            const repo = context.repo.repo;
+            const url = `https://${owner}.github.io/${repo}/pr-${pr}/`;
+            const body = [
+              '## Preview deployment ready',
+              '',
+              `**[Open preview →](${url})**`,
+              `\`${url}\``,
+              '',
+              '_Updates on every push. Removed when the PR is closed._',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: pr,
+            });
+            const existing = comments.find(
+              c => c.user.type === 'Bot' && c.body.includes('Preview deployment ready')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                ...context.repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: pr, body,
+              });
+            }
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          fetch-depth: 0
+
+      - name: Remove preview directory and push
+        run: |
+          PR_DIR="pr-${{ github.event.number }}"
+          if [ -d "$PR_DIR" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git rm -rf "$PR_DIR"
+            git commit -m "chore: remove preview for PR #${{ github.event.number }}"
+            git push
+          else
+            echo "No preview directory to clean up for PR #${{ github.event.number }}"
+          fi

@@ -28,23 +28,27 @@
     ctx.closePath();
   }
 
+  function theme() { return P.variant.theme; }
+  function labels() { return P.variant.labels; }
+
   function drawCardBack(ctx, x, y, w, h) {
+    var t = theme();
     ctx.save();
     roundRect(ctx, x, y, w, h, 6);
-    ctx.fillStyle = "#7a1020";
+    ctx.fillStyle = t.cardBackFill;
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = "#f0d68a";
+    ctx.strokeStyle = t.cardBackInk;
     ctx.stroke();
     roundRect(ctx, x + 5, y + 5, w - 10, h - 10, 4);
-    ctx.strokeStyle = "rgba(240,214,138,0.55)";
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.lineWidth = 1;
     ctx.stroke();
-    ctx.fillStyle = "rgba(240,214,138,0.65)";
+    ctx.fillStyle = t.cardBackInk;
     ctx.font = "bold " + Math.floor(h * 0.4) + "px Georgia, serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.fillText("♠", x + w / 2, y + h / 2);
+    ctx.fillText(t.cardBackSymbol, x + w / 2, y + h / 2);
     ctx.restore();
   }
 
@@ -138,15 +142,16 @@
       var rx = Math.min(cw * 0.46, ch * 0.62);
       var ry = Math.min(rx * 0.66, ch * 0.46);
 
-      // Poker-table felt.
+      // Dispenser surface (felt table / pond).
+      var t = theme();
       ctx.save();
       ctx.beginPath();
       ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
       var selectable = g.phase === "SELECT_SOURCE" && f.tokens.length > 0;
-      ctx.fillStyle = f.tokens.length === 0 ? "#21402f" : "#2f7d4f";
+      ctx.fillStyle = f.tokens.length === 0 ? t.factoryEmpty : t.factoryFill;
       ctx.fill();
       ctx.lineWidth = 6;
-      ctx.strokeStyle = selectable ? "#f0c040" : "#6b4a23";
+      ctx.strokeStyle = selectable ? "#f0c040" : t.factoryStroke;
       ctx.stroke();
       ctx.restore();
 
@@ -174,8 +179,8 @@
         push({ type: "factory", index: i, x: cx - rx, y: cy - ry, w: rx * 2, h: ry * 2 });
       }
 
-      text(ctx, "Table " + (i + 1), cx, cy + ry + 14, "13px Georgia, serif",
-        "rgba(255,255,255,0.6)", "center");
+      text(ctx, labels().factoryLabel + " " + (i + 1), cx, cy + ry + 14,
+        "13px Georgia, serif", "rgba(255,255,255,0.6)", "center");
     }
   }
 
@@ -183,14 +188,14 @@
     var x = 920, y = 52, w = 340, h = 300;
     ctx.save();
     roundRect(ctx, x, y, w, h, 14);
-    ctx.fillStyle = "#243a2c";
+    ctx.fillStyle = theme().centerFill;
     ctx.fill();
     ctx.lineWidth = 4;
     var selectable = g.phase === "SELECT_SOURCE" && g.center.length > 0;
-    ctx.strokeStyle = selectable ? "#f0c040" : "#6b4a23";
+    ctx.strokeStyle = selectable ? "#f0c040" : theme().factoryStroke;
     ctx.stroke();
     ctx.restore();
-    text(ctx, "The Muck (center)", x + w / 2, y + 22, "bold 15px Georgia, serif",
+    text(ctx, labels().centerLabel, x + w / 2, y + 22, "bold 15px Georgia, serif",
       "rgba(255,255,255,0.75)", "center");
 
     if (g.dealerInCenter) drawDealer(ctx, x + w - 44, y + 12, 30, 30);
@@ -220,7 +225,7 @@
     ctx.restore();
 
     if (g.phase === "SELECT_RAINBOW") {
-      text(ctx, "Choose your rainbow set:", x + 16, y + 26, "bold 16px Georgia, serif", "#f0e9d2");
+      text(ctx, labels().draftPrompt, x + 16, y + 26, "bold 16px Georgia, serif", "#f0e9d2");
       var tw = 52, th = 74, gap = 12, sx = x + 20, sy = y + 34;
       for (var i = 0; i < g.revealed.length; i++) {
         var t = g.revealed[i];
@@ -234,7 +239,7 @@
         "take", { primary: true, disabled: g.takeSet.length === 0 });
       drawButton(ctx, x + w - 190, y + 40, 150, 44, "Cancel", "cancelSelection", {});
     } else if (g.phase === "PLACE" || g.phase === "PAY_GOLD") {
-      text(ctx, "Holding — click the grid to place, or send to floor:",
+      text(ctx, labels().placePrompt,
         x + 16, y + 26, "bold 16px Georgia, serif", "#f0e9d2");
       var hw = 52, hh = 74, hgap = 12, hsx = x + 20, hsy = y + 34;
       for (var j = 0; j < g.held.length; j++) {
@@ -246,7 +251,7 @@
         drawButton(ctx, x + w - 220, y + 40, 200, 44, "Send to Floor", "floor", {});
       }
     } else {
-      text(ctx, g.currentPlayer().name + ": choose a glowing table or the center.",
+      text(ctx, g.currentPlayer().name + ": " + labels().sourcePrompt,
         x + 16, y + h / 2 + 6, "italic 18px Georgia, serif", "rgba(255,255,255,0.8)");
     }
   }
@@ -429,7 +434,7 @@
     ctx.fillStyle = "#15211a"; ctx.fill();
     ctx.lineWidth = 3; ctx.strokeStyle = "#f0c040"; ctx.stroke();
 
-    text(ctx, "Shuffling the deck…", x + w / 2, y + 52,
+    text(ctx, labels().shuffleTitle, x + w / 2, y + 52,
       "bold 28px Georgia, serif", "#f0c040", "center");
     text(ctx, "Round " + g.round, x + w / 2, y + 84,
       "20px Georgia, serif", "#e8e8e0", "center");
@@ -469,15 +474,16 @@
 
   function draw(ctx, g) {
     reset();
-    // Background felt.
+    // Background.
+    var t = theme();
     var grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, "#0d3022");
-    grad.addColorStop(1, "#082016");
+    grad.addColorStop(0, t.bgTop);
+    grad.addColorStop(1, t.bgBottom);
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    text(ctx, "POZULE", 24, 36, "bold 30px Georgia, serif", "#f0c040");
-    text(ctx, "Azul × Poker", 190, 36, "italic 18px Georgia, serif", "rgba(255,255,255,0.6)");
+    text(ctx, labels().title, 24, 36, "bold 30px Georgia, serif", "#f0c040");
+    text(ctx, labels().subtitle, 190, 36, "italic 18px Georgia, serif", "rgba(255,255,255,0.6)");
     text(ctx, g.message || "", 360, 36, "16px Georgia, serif", "#eef0e6");
 
     drawFactories(ctx, g);

@@ -1,0 +1,44 @@
+name: Deploy to GitHub Pages
+
+# One-time repo setup required for production + PR previews:
+#   Settings → Pages → Source → "Deploy from a branch"
+#   Branch: gh-pages   Folder: / (root)
+# The gh-pages branch is created automatically on the first run of this workflow.
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# Serialize gh-pages writes so production and preview deploys don't clash.
+concurrency:
+  group: gh-pages-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Assemble static site
+        run: |
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='_site' \
+            ./ _site/
+          touch _site/.nojekyll
+
+      - name: Deploy to gh-pages (root), preserving PR previews
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: _site
+          branch: gh-pages
+          clean: true
+          clean-exclude: |
+            pr-*/
