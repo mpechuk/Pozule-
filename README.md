@@ -56,6 +56,11 @@ hand currently present**:
 Flush, Straight, Straight Flush and Royal Flush require a full 5-card line; the
 pair family scores on partial lines too.
 
+While you play, the current player's grid shows a small **transient score badge**
+next to every row, column and diagonal that has a non-zero score, so you can see
+each line's best combo paying off as you place cards (rows badge to the right,
+columns to the top, and the two diagonals at the upper corners marked ↘ / ↙).
+
 **Final score = Σ line points − floor penalties + remaining gold.** Highest wins.
 
 ## Variants
