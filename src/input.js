@@ -35,6 +35,7 @@
       case "floor": game.sendToFloor(); break;
       case "payYes": game.confirmPayGold(); break;
       case "payNo": game.cancelPayGold(); break;
+      case "passTurn": game.passTurn(); break;
       case "newGame": if (onNewGame) onNewGame(); break;
     }
   }

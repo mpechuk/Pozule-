@@ -8,6 +8,7 @@
  *   SELECT_RAINBOW -> toggle a rainbow take-set, then confirm
  *   PLACE          -> seat held tokens onto the grid or send them to the floor
  *   PAY_GOLD       -> confirm paying to clear a full floor slot
+ *   PASS_TURN      -> hotseat hand-off; tap "Pass turn" or wait for auto-advance
  *   GAME_OVER      -> final scores shown
  */
 (function (P) {
@@ -39,6 +40,9 @@
     // Round-transition state.
     this.shuffleStart = 0;          // performance.now() when SHUFFLING began
     this.lastDealerReturn = null;   // { name, cost } shown during shuffle
+
+    // Turn hand-off state.
+    this.passStart = 0;             // performance.now() when PASS_TURN began
 
     // Per-turn working state.
     this.phase = "SELECT_SOURCE";
@@ -317,10 +321,33 @@
       return;
     }
 
+    // Shared-screen hand-off: with multiple players, pause on a "pass turn"
+    // screen so the device can change hands. It auto-advances after PASS_MS if
+    // nobody taps the button (main.js drives the timer). Solo play has nobody to
+    // pass to, so it proceeds straight to the next turn.
+    if (this.players.length > 1) {
+      this.phase = "PASS_TURN";
+      this.passStart = performance.now();
+      this._notify();
+      return;
+    }
+
+    this._beginTurn();
+  };
+
+  // Start the current player's turn at source selection. Reached either directly
+  // (solo) or after the PASS_TURN hand-off resolves.
+  Game.prototype._beginTurn = function () {
     this.phase = "SELECT_SOURCE";
     if (!this.message) this.message = this.currentPlayer().name + ": pick a factory or the center.";
     else this.message += "  " + this.currentPlayer().name + "'s turn.";
     this._notify();
+  };
+
+  // Tapping "Pass turn" (or the auto-advance timer) ends the hand-off.
+  Game.prototype.passTurn = function () {
+    if (this.phase !== "PASS_TURN") return;
+    this._beginTurn();
   };
 
   // The dealer button is returned to the center at the start of each new round:

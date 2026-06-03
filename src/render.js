@@ -507,6 +507,43 @@
       { primary: true });
   }
 
+  // Hotseat hand-off overlay: names the next player, offers a "Pass turn"
+  // button, and counts down to the automatic transition driven by main.js.
+  function drawPassTurn(ctx, g) {
+    var now = performance.now();
+    var remain = Math.max(0, R.PASS_MS - (now - g.passStart));
+    var secs = Math.ceil(remain / 1000);
+    var p = g.currentPlayer();
+
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.8)";
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    var w = 520, h = 300, x = (W - w) / 2, y = (H - h) / 2;
+    roundRect(ctx, x, y, w, h, 16);
+    ctx.fillStyle = "#15211a"; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = "#f0c040"; ctx.stroke();
+
+    text(ctx, "Pass the device", x + w / 2, y + 56,
+      "bold 26px Georgia, serif", "#f0c040", "center");
+    text(ctx, "Next up: " + p.name, x + w / 2, y + 108,
+      "bold 24px Georgia, serif", "#e8e8e0", "center");
+    text(ctx, "Continuing automatically in " + secs + "s…", x + w / 2, y + 144,
+      "16px Georgia, serif", "rgba(255,255,255,0.6)", "center");
+
+    drawButton(ctx, x + w / 2 - 120, y + h - 96, 240, 52, "Pass turn", "passTurn",
+      { primary: true });
+
+    // Countdown progress bar (drains toward zero).
+    var bw = w - 120, bx = x + 60, by = y + h - 28;
+    var progress = R.PASS_MS > 0 ? remain / R.PASS_MS : 0;
+    roundRect(ctx, bx, by, bw, 10, 5);
+    ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fill();
+    roundRect(ctx, bx, by, bw * progress, 10, 5);
+    ctx.fillStyle = "#3fd170"; ctx.fill();
+  }
+
   function drawShuffling(ctx, g) {
     var now = performance.now();
     var elapsed = now - g.shuffleStart;
@@ -593,6 +630,7 @@
     screenSpace = true;
     if (g.phase === "SHUFFLING") drawShuffling(ctx, g);
     if (g.phase === "PAY_GOLD") drawPayGold(ctx, g);
+    if (g.phase === "PASS_TURN") drawPassTurn(ctx, g);
     if (g.phase === "GAME_OVER") drawGameOver(ctx, g);
     screenSpace = false;
   }
