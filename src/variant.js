@@ -163,16 +163,23 @@
 
   var VARIANTS = { classic: classic, ponds: ponds };
 
-  function readVariantId() {
+  // Returns the variant chosen via the `?variant=` URL param, plus whether it
+  // was explicitly (and validly) specified there. When a specific variant is
+  // pinned via the URL, the setup screen hides its variant selector.
+  function readVariant() {
     try {
       var params = new URLSearchParams(window.location.search);
       var id = params.get("variant");
-      if (id && VARIANTS[id]) return id;
+      if (id && VARIANTS[id]) return { id: id, fromUrl: true };
     } catch (e) { /* older browsers / file:// quirks */ }
-    return "classic";
+    return { id: "classic", fromUrl: false };
   }
 
+  var chosen = readVariant();
+
   P.VARIANTS = VARIANTS;
-  P.variantId = readVariantId();
+  P.variantId = chosen.id;
   P.variant = VARIANTS[P.variantId];
+  // True when a valid variant was pinned via the `?variant=` URL param.
+  P.variantFromUrl = chosen.fromUrl;
 })(window.Pozule = window.Pozule || {});

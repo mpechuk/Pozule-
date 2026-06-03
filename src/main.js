@@ -50,6 +50,11 @@
     var card = document.getElementById("setupCard");
     if (card) card.classList.toggle("ponds", !!dom.ponds);
 
+    // When the variant is pinned via the ?variant= URL param, hide the variant
+    // selector entirely — the choice has already been made for the player.
+    var selector = document.getElementById("variantSelector");
+    if (selector) selector.style.display = P.variantFromUrl ? "none" : "";
+
     // Highlight the active variant button.
     var vbuttons = document.querySelectorAll("[data-variant]");
     Array.prototype.forEach.call(vbuttons, function (b) {
