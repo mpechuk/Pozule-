@@ -1,33 +1,34 @@
 /*
  * deck.js — card/token model and the bag.
  * Attaches to the global `Pozule` namespace (classic script, no bundler).
+ *
+ * The suits, ranks, value ladder and bag composition all come from the active
+ * variant's `deck` spec (see variant.js), so the same engine drives both the
+ * classic poker deck and the mahjong "ponds" deck.
  */
 (function (P) {
   "use strict";
 
-  // Suits. `color` drives the red/black rendering of poker pips.
-  var SUITS = [
-    { key: "S", name: "Spades", symbol: "♠", color: "#1a1a1a" },
-    { key: "H", name: "Hearts", symbol: "♥", color: "#c01b1b" },
-    { key: "D", name: "Diamonds", symbol: "♦", color: "#c01b1b" },
-    { key: "C", name: "Clubs", symbol: "♣", color: "#1a1a1a" },
-  ];
+  var spec = (P.variant && P.variant.deck) || {
+    suits: [], ranks: [], values: {}, buildBag: function () { return []; },
+  };
 
-  // Ranks low -> high. Value = index + 2, so A == 14.
-  var RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+  var SUITS = spec.suits;
+  var RANKS = spec.ranks;
+  var VALUES = spec.values;
 
   var SUIT_BY_KEY = {};
   SUITS.forEach(function (s) { SUIT_BY_KEY[s.key] = s; });
 
   function rankValue(rank) {
-    return RANKS.indexOf(rank) + 2;
+    return VALUES[rank];
   }
 
   function suitInfo(key) {
     return SUIT_BY_KEY[key];
   }
 
-  // A single drafted token (a poker card on a tile).
+  // A single drafted token (a tile carrying a rank and a suit).
   function makeToken(id, rank, suitKey) {
     return { id: id, rank: rank, suit: suitKey };
   }
@@ -38,18 +39,10 @@
     return { id: "dealer", dealer: true };
   }
 
-  // A bag built from `decks` copies of a standard 52-card deck.
+  // The bag for the active variant. `decks` is a multiplier for variants that
+  // stack standard decks (classic); fixed-size sets (ponds) ignore it.
   function makeBag(decks) {
-    var bag = [];
-    var n = 0;
-    for (var d = 0; d < decks; d++) {
-      for (var s = 0; s < SUITS.length; s++) {
-        for (var r = 0; r < RANKS.length; r++) {
-          bag.push(makeToken("t" + n++, RANKS[r], SUITS[s].key));
-        }
-      }
-    }
-    return bag;
+    return spec.buildBag(makeToken, decks);
   }
 
   // In-place Fisher-Yates shuffle.

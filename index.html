@@ -9,14 +9,15 @@
 <body>
   <div id="app">
     <div id="setup">
-      <div class="setup-card">
-        <h1>POZULE</h1>
-        <p class="tag">A mash-up of <strong>Azul</strong> and <strong>poker</strong>.</p>
-        <p class="how">
-          Flip a poker-table <em>flop</em>, draft a rainbow set (no shared rank
-          or suit), and build poker hands across the rows, columns and diagonals
-          of your 5×5 grid. Overflow lands on the floor; pay gold to keep playing.
-        </p>
+      <div class="setup-card" id="setupCard">
+        <h1 id="setupTitle">POZULE</h1>
+        <p class="tag" id="setupTag"></p>
+        <p class="choose">Choose a variant:</p>
+        <div class="variant-buttons">
+          <button data-variant="classic">Classic</button>
+          <button data-variant="ponds">Ponds</button>
+        </div>
+        <p class="how" id="setupHow"></p>
         <p class="choose">Choose number of players:</p>
         <div class="player-buttons">
           <button data-players="1">1</button>
@@ -30,6 +31,7 @@
     <canvas id="board"></canvas>
   </div>
 
+  <script src="src/variant.js"></script>
   <script src="src/deck.js"></script>
   <script src="src/poker.js"></script>
   <script src="src/rules.js"></script>

@@ -35,6 +35,37 @@
     requestAnimationFrame(loop);
   }
 
+  // Reflect the active variant (chosen from the ?variant= URL param) into the
+  // setup screen copy, document title and theme.
+  function applyVariant() {
+    var dom = P.variant.dom;
+    document.title = dom.title;
+    var titleEl = document.getElementById("setupTitle");
+    var tagEl = document.getElementById("setupTag");
+    var howEl = document.getElementById("setupHow");
+    if (titleEl) titleEl.textContent = dom.h1;
+    if (tagEl) tagEl.innerHTML = dom.tag;
+    if (howEl) howEl.innerHTML = dom.how;
+
+    var card = document.getElementById("setupCard");
+    if (card) card.classList.toggle("ponds", !!dom.ponds);
+
+    // Highlight the active variant button.
+    var vbuttons = document.querySelectorAll("[data-variant]");
+    Array.prototype.forEach.call(vbuttons, function (b) {
+      b.classList.toggle("active", b.getAttribute("data-variant") === P.variantId);
+    });
+  }
+
+  // Switching variants reloads the page with the new ?variant= param, so the
+  // deck (built at load time) is rebuilt correctly for the chosen variant.
+  function selectVariant(id) {
+    if (id === P.variantId) return;
+    var params = new URLSearchParams(window.location.search);
+    params.set("variant", id);
+    window.location.search = params.toString();
+  }
+
   function init() {
     canvas = document.getElementById("board");
     canvas.width = P.render.W;
@@ -43,12 +74,27 @@
 
     P.input.attach(canvas, function () { return game; }, backToSetup);
 
+    applyVariant();
+
+    var vbuttons = document.querySelectorAll("[data-variant]");
+    Array.prototype.forEach.call(vbuttons, function (b) {
+      b.addEventListener("click", function () {
+        selectVariant(b.getAttribute("data-variant"));
+      });
+    });
+
     var buttons = document.querySelectorAll("[data-players]");
     Array.prototype.forEach.call(buttons, function (b) {
       b.addEventListener("click", function () {
         startGame(parseInt(b.getAttribute("data-players"), 10));
       });
     });
+
+    // Optional deep link: ?variant=ponds&players=2 launches straight into a game.
+    try {
+      var players = parseInt(new URLSearchParams(window.location.search).get("players"), 10);
+      if (players >= 1 && players <= 4) startGame(players);
+    } catch (e) { /* ignore */ }
 
     requestAnimationFrame(loop);
   }
