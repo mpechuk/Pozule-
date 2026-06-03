@@ -29,7 +29,8 @@ No build step, no dependencies — just open `index.html`.
    and that player **deals (goes first)** next round.
 4. **Place** the cards you took onto empty cells of your **5×5 grid**, or **send
    them to the floor** (penalty line).
-   - When your turn ends, a **"Pass turn"** screen names the next player so the
+   - When your turn ends, a **"Pass turn"** prompt appears in the bar above your
+     grid (without hiding any grid or score data) naming the next player so the
      device can change hands. Tap the button to continue, or it advances
      **automatically after 5 seconds**. (Solo play skips this.)
 5. **Gold & the floor:** the floor has 7 slots with penalties
