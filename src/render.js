@@ -12,8 +12,50 @@
   var W = 1280, H = 860;
   var hits = [];
 
+  // --- Camera -----------------------------------------------------------------
+  // The board scene is drawn through an animated camera (scale + translate) so
+  // we can zoom into the player's grid and their drafted tokens when the turn
+  // moves from drafting into placement, then ease back out afterwards. Header
+  // text and full-screen modals are drawn in screen space (camera bypassed);
+  // everything else is "world space". Hitboxes remember which space they live in
+  // so input.js can hit-test correctly under any zoom.
+  var screenSpace = false;
+  var cam = { scale: 1, tx: 0, ty: 0 };
+  var camLast = 0;
+
+  // The slice of the world we zoom to during placement: the current player's
+  // 5x5 grid, its penalty line, and the held (drafted) tokens in the tray.
+  var PLACE_FOCUS = { x: 12, y: 356, w: 590, h: 486 };
+  var FULL_FOCUS = { x: 0, y: 0, w: W, h: H };
+
+  function camFromRect(f, pad) {
+    var s = Math.min(W / f.w, H / f.h) * pad;
+    var cx = f.x + f.w / 2, cy = f.y + f.h / 2;
+    return { scale: s, tx: W / 2 - s * cx, ty: H / 2 - s * cy };
+  }
+
+  function updateCamera(g) {
+    var zoomed = g.phase === "PLACE" || g.phase === "PAY_GOLD";
+    var focus = zoomed ? PLACE_FOCUS : FULL_FOCUS;
+    var target = camFromRect(focus, zoomed ? 0.95 : 1);
+
+    var now = performance.now();
+    var dt = camLast ? Math.min(100, now - camLast) : 16;
+    camLast = now;
+    // Frame-rate independent exponential ease toward the target transform.
+    var k = 1 - Math.exp(-dt / 110);
+    cam.scale += (target.scale - cam.scale) * k;
+    cam.tx += (target.tx - cam.tx) * k;
+    cam.ty += (target.ty - cam.ty) * k;
+  }
+
+  // Map canvas (screen) coordinates back into world space for hit-testing.
+  function screenToWorld(x, y) {
+    return { x: (x - cam.tx) / cam.scale, y: (y - cam.ty) / cam.scale };
+  }
+
   function reset() { hits = []; }
-  function push(h) { hits.push(h); }
+  function push(h) { h.screen = screenSpace; hits.push(h); }
   function getHits() { return hits; }
 
   function roundRect(ctx, x, y, w, h, r) {
@@ -248,7 +290,8 @@
         push({ type: "heldToken", index: j, x: hx, y: hsy, w: hw, h: hh });
       }
       if (g.held.length > 0) {
-        drawButton(ctx, x + w - 220, y + 40, 200, 44, "Send to Floor", "floor", {});
+        // Sits beside the held tokens so it stays within the placement zoom.
+        drawButton(ctx, x + 360, y + 40, 200, 44, "Send to Floor", "floor", {});
       }
     } else {
       text(ctx, g.currentPlayer().name + ": " + labels().sourcePrompt,
@@ -474,7 +517,10 @@
 
   function draw(ctx, g) {
     reset();
-    // Background.
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    screenSpace = false;
+
+    // Background (screen space).
     var t = theme();
     var grad = ctx.createLinearGradient(0, 0, 0, H);
     grad.addColorStop(0, t.bgTop);
@@ -482,20 +528,29 @@
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
+    // Header stays in screen space so it's legible at any zoom level.
     text(ctx, labels().title, 24, 36, "bold 30px Georgia, serif", "#f0c040");
     text(ctx, labels().subtitle, 190, 36, "italic 18px Georgia, serif", "rgba(255,255,255,0.6)");
     text(ctx, g.message || "", 360, 36, "16px Georgia, serif", "#eef0e6");
 
+    // Board scene, drawn through the (possibly zoomed) camera.
+    updateCamera(g);
+    ctx.save();
+    ctx.setTransform(cam.scale, 0, 0, cam.scale, cam.tx, cam.ty);
     drawFactories(ctx, g);
     drawCenter(ctx, g);
     drawTray(ctx, g);
     drawCurrentBoard(ctx, g);
     drawOpponents(ctx, g);
+    ctx.restore();
 
+    // Full-screen modals/overlays, back in screen space.
+    screenSpace = true;
     if (g.phase === "SHUFFLING") drawShuffling(ctx, g);
     if (g.phase === "PAY_GOLD") drawPayGold(ctx, g);
     if (g.phase === "GAME_OVER") drawGameOver(ctx, g);
+    screenSpace = false;
   }
 
-  P.render = { W: W, H: H, draw: draw, getHits: getHits };
+  P.render = { W: W, H: H, draw: draw, getHits: getHits, screenToWorld: screenToWorld };
 })(window.Pozule = window.Pozule || {});
