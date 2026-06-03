@@ -293,6 +293,23 @@
         // Sits beside the held tokens so it stays within the placement zoom.
         drawButton(ctx, x + 360, y + 40, 200, 44, "Send to Floor", "floor", {});
       }
+    } else if (g.phase === "PASS_TURN") {
+      // Hand-off prompt + button, hosted in the tray bar above the grid so it
+      // never covers grid cells, score badges, the stats panel or opponents.
+      var remain = Math.max(0, R.PASS_MS - (performance.now() - g.passStart));
+      var secs = Math.ceil(remain / 1000);
+      text(ctx, "Pass the device — " + g.currentPlayer().name + " is up next.",
+        x + 16, y + 30, "bold 17px Georgia, serif", "#f0e9d2");
+      text(ctx, "Tap to continue, or it advances automatically in " + secs + "s.",
+        x + 16, y + 54, "14px Georgia, serif", "rgba(255,255,255,0.65)");
+      drawButton(ctx, x + 20, y + 66, 220, 44, "Pass turn", "passTurn", { primary: true });
+      // Slim countdown bar beside the button (drains toward zero).
+      var pbx = x + 260, pby = y + 84, pbw = 280;
+      var progress = R.PASS_MS > 0 ? remain / R.PASS_MS : 0;
+      roundRect(ctx, pbx, pby, pbw, 8, 4);
+      ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fill();
+      roundRect(ctx, pbx, pby, pbw * progress, 8, 4);
+      ctx.fillStyle = "#3fd170"; ctx.fill();
     } else {
       text(ctx, g.currentPlayer().name + ": " + labels().sourcePrompt,
         x + 16, y + h / 2 + 6, "italic 18px Georgia, serif", "rgba(255,255,255,0.8)");
@@ -507,43 +524,6 @@
       { primary: true });
   }
 
-  // Hotseat hand-off overlay: names the next player, offers a "Pass turn"
-  // button, and counts down to the automatic transition driven by main.js.
-  function drawPassTurn(ctx, g) {
-    var now = performance.now();
-    var remain = Math.max(0, R.PASS_MS - (now - g.passStart));
-    var secs = Math.ceil(remain / 1000);
-    var p = g.currentPlayer();
-
-    ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,0.8)";
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-
-    var w = 520, h = 300, x = (W - w) / 2, y = (H - h) / 2;
-    roundRect(ctx, x, y, w, h, 16);
-    ctx.fillStyle = "#15211a"; ctx.fill();
-    ctx.lineWidth = 3; ctx.strokeStyle = "#f0c040"; ctx.stroke();
-
-    text(ctx, "Pass the device", x + w / 2, y + 56,
-      "bold 26px Georgia, serif", "#f0c040", "center");
-    text(ctx, "Next up: " + p.name, x + w / 2, y + 108,
-      "bold 24px Georgia, serif", "#e8e8e0", "center");
-    text(ctx, "Continuing automatically in " + secs + "s…", x + w / 2, y + 144,
-      "16px Georgia, serif", "rgba(255,255,255,0.6)", "center");
-
-    drawButton(ctx, x + w / 2 - 120, y + h - 96, 240, 52, "Pass turn", "passTurn",
-      { primary: true });
-
-    // Countdown progress bar (drains toward zero).
-    var bw = w - 120, bx = x + 60, by = y + h - 28;
-    var progress = R.PASS_MS > 0 ? remain / R.PASS_MS : 0;
-    roundRect(ctx, bx, by, bw, 10, 5);
-    ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fill();
-    roundRect(ctx, bx, by, bw * progress, 10, 5);
-    ctx.fillStyle = "#3fd170"; ctx.fill();
-  }
-
   function drawShuffling(ctx, g) {
     var now = performance.now();
     var elapsed = now - g.shuffleStart;
@@ -630,7 +610,6 @@
     screenSpace = true;
     if (g.phase === "SHUFFLING") drawShuffling(ctx, g);
     if (g.phase === "PAY_GOLD") drawPayGold(ctx, g);
-    if (g.phase === "PASS_TURN") drawPassTurn(ctx, g);
     if (g.phase === "GAME_OVER") drawGameOver(ctx, g);
     screenSpace = false;
   }
