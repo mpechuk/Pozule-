@@ -89,18 +89,30 @@ Pair, Two Pair, Three of a Kind, Four of a Kind, Full House (three + a pair),
 Run (five in sequence), Suited (five of one suit), Suited Run, and the Grand
 Run — using the same point values as the classic table above.
 
-## Enabling GitHub Pages
+## Deployment & PR previews
 
-The repo ships a deploy workflow at `.github/workflows/pages.yml`. It runs on
-pushes to `main` (and the development branch) and **enables Pages automatically**
-on its first successful run (`configure-pages` with `enablement: true`), so no
-manual Settings toggle is normally required.
+Hosting is GitHub Pages, served from the **`gh-pages` branch** (the site is
+static, so there's no build step — files are copied as-is). All asset paths are
+relative, so the game runs correctly under any Pages sub-path, including the
+per-PR preview folders.
 
-If your org disallows Actions from enabling Pages, turn it on once under
-**Settings → Pages → Source = GitHub Actions**.
+- **Production** — `.github/workflows/deploy.yml` runs on pushes to `main` and
+  publishes the site to the **root** of `gh-pages`. It uses
+  `clean-exclude: pr-*/` so live PR previews are never wiped by a production
+  deploy.
+- **PR previews** — `.github/workflows/preview.yml` runs on pull requests. On
+  open/update it deploys that PR to `gh-pages/pr-<number>/` and posts (then
+  keeps updating) a comment with the preview URL
+  `https://<owner>.github.io/<repo>/pr-<number>/`. When the PR is **closed or
+  merged**, it deletes the `pr-<number>/` folder from `gh-pages`.
 
-All asset paths are relative, so the game works correctly under the
-`/<repo>/` Pages sub-path.
+### One-time setup
+
+Under **Settings → Pages → Source**, choose **"Deploy from a branch"** and set
+**Branch: `gh-pages` / `/ (root)`**. The `gh-pages` branch is created
+automatically the first time `deploy.yml` runs. The default `GITHUB_TOKEN`
+provides the `contents: write` / `pull-requests: write` permissions the
+workflows need — no extra secrets required.
 
 ## Project layout
 
