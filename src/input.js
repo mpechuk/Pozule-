@@ -5,11 +5,18 @@
 (function (P) {
   "use strict";
 
-  function hitAt(hits, x, y) {
+  function inside(h, p) {
+    return p.x >= h.x && p.x <= h.x + h.w && p.y >= h.y && p.y <= h.y + h.h;
+  }
+
+  // Screen-space hits (header/modals) test against raw canvas coords; world-space
+  // hits (the board scene, drawn through the camera) test against coords mapped
+  // back through the camera transform.
+  function hitAt(hits, screenPt, worldPt) {
     // Iterate in reverse so modal/overlay hitboxes (drawn last) win.
     for (var i = hits.length - 1; i >= 0; i--) {
       var h = hits[i];
-      if (x >= h.x && x <= h.x + h.w && y >= h.y && y <= h.y + h.h) return h;
+      if (inside(h, h.screen ? screenPt : worldPt)) return h;
     }
     return null;
   }
@@ -37,7 +44,8 @@
       var game = getGame();
       if (!game) return;
       var pt = toCanvasCoords(canvas, evt);
-      var h = hitAt(P.render.getHits(), pt.x, pt.y);
+      var world = P.render.screenToWorld(pt.x, pt.y);
+      var h = hitAt(P.render.getHits(), pt, world);
       if (!h) return;
       switch (h.type) {
         case "button": handleButton(game, h.action, onNewGame); break;
