@@ -60,6 +60,42 @@
     Array.prototype.forEach.call(vbuttons, function (b) {
       b.classList.toggle("active", b.getAttribute("data-variant") === P.variantId);
     });
+
+    buildScoringGuide();
+  }
+
+  // Render the illustrated scoring guide for the active variant: one row per
+  // combo (best -> worst) showing an example five-card line and the points it
+  // scores. The point value is computed by running the example through the real
+  // evaluator, so the guide can never disagree with how the engine scores.
+  function buildScoringGuide() {
+    var host = document.getElementById("scoringGuide");
+    if (!host) return;
+    var examples = (P.variant && P.variant.scoring) || [];
+    if (!examples.length) { host.innerHTML = ""; return; }
+
+    var rows = examples.map(function (ex) {
+      var tokens = ex.cards.map(function (c) {
+        return P.deck.makeToken("ex", c[0], c[1]);
+      });
+      var points = P.poker.evaluateLine(tokens).points;
+      var cards = ex.cards.map(function (c) {
+        var info = P.deck.suitInfo(c[1]) || { symbol: "?", color: "#333" };
+        return '<span class="mini-card" style="color:' + info.color + '">' +
+          '<span class="mc-rank">' + c[0] + '</span>' +
+          '<span class="mc-suit">' + info.symbol + '</span></span>';
+      }).join("");
+      return '<div class="score-row">' +
+        '<div class="score-cards">' + cards + '</div>' +
+        '<div class="score-meta">' +
+        '<span class="score-name">' + ex.name + '</span>' +
+        '<span class="score-pts">' + points + '</span>' +
+        '</div></div>';
+    }).join("");
+
+    host.innerHTML =
+      '<p class="choose">Scoring — each line scores its best combo:</p>' +
+      '<div class="score-rows">' + rows + '</div>';
   }
 
   // Switching variants reloads the page with the new ?variant= param, so the

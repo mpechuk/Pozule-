@@ -66,6 +66,22 @@
         "or suit), and build poker hands across the rows, columns and diagonals " +
         "of your 5×5 grid. Overflow lands on the floor; pay gold to keep playing.",
     },
+    // Illustrated examples for the setup screen, best -> worst. Each `cards`
+    // entry is a [rank, suitKey] pair; the point value shown is computed by
+    // running the example through the engine, so it can never drift from the
+    // real scoring. `name` is the label players see for the combo.
+    scoring: [
+      { name: "Royal Flush",     cards: [["10","S"],["J","S"],["Q","S"],["K","S"],["A","S"]] },
+      { name: "Straight Flush",  cards: [["5","H"],["6","H"],["7","H"],["8","H"],["9","H"]] },
+      { name: "Four of a Kind",  cards: [["9","S"],["9","H"],["9","D"],["9","C"],["2","S"]] },
+      { name: "Full House",      cards: [["K","S"],["K","H"],["K","D"],["4","C"],["4","S"]] },
+      { name: "Flush",           cards: [["2","D"],["5","D"],["8","D"],["J","D"],["K","D"]] },
+      { name: "Straight",        cards: [["4","S"],["5","H"],["6","D"],["7","C"],["8","S"]] },
+      { name: "Three of a Kind", cards: [["7","S"],["7","H"],["7","D"],["2","C"],["9","S"]] },
+      { name: "Two Pair",        cards: [["Q","S"],["Q","H"],["5","D"],["5","C"],["8","S"]] },
+      { name: "One Pair",        cards: [["A","S"],["A","H"],["4","D"],["9","C"],["J","S"]] },
+      { name: "High Card",       cards: [["2","S"],["5","H"],["8","D"],["J","C"],["A","S"]] },
+    ],
   };
 
   // ---- Ponds: a full mahjong deck (no poker) -------------------------------
@@ -159,6 +175,21 @@
         "Three of a Kind (15) · Two Pair (10) · One Pair (5).<br>" +
         "Flowers all match one another; seasons all match one another.",
     },
+    // Illustrated examples for the setup screen, best -> worst. Combo names are
+    // the ponds-flavoured labels (the engine evaluates these as the matching
+    // poker hands: Grand Run = Royal Flush, Suited Run = Straight Flush, Suited
+    // = Flush, Run = Straight), and the point value shown is computed live.
+    scoring: [
+      { name: "Grand Run",       cards: [["E","honor"],["S","honor"],["W","honor"],["N","honor"],["Wh","honor"]] },
+      { name: "Suited Run",      cards: [["1","dots"],["2","dots"],["3","dots"],["4","dots"],["5","dots"]] },
+      { name: "Four of a Kind",  cards: [["7","dots"],["7","dots"],["7","bam"],["7","chr"],["2","honor"]] },
+      { name: "Full House",      cards: [["5","dots"],["5","bam"],["5","chr"],["3","dots"],["3","bam"]] },
+      { name: "Suited",          cards: [["2","bam"],["4","bam"],["6","bam"],["8","bam"],["9","bam"]] },
+      { name: "Run",             cards: [["4","dots"],["5","bam"],["6","chr"],["7","dots"],["8","bam"]] },
+      { name: "Three of a Kind", cards: [["2","dots"],["2","bam"],["2","chr"],["8","dots"],["5","bam"]] },
+      { name: "Two Pair",        cards: [["6","dots"],["6","bam"],["9","chr"],["9","dots"],["3","bam"]] },
+      { name: "One Pair",        cards: [["Fl","bonus"],["Fl","bonus"],["4","chr"],["2","dots"],["9","bam"]] },
+    ],
   };
 
   var VARIANTS = { classic: classic, ponds: ponds };

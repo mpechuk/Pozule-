@@ -26,7 +26,7 @@ html, body {
 }
 
 .setup-card {
-  max-width: 520px;
+  max-width: 560px;
   background: linear-gradient(160deg, #11402c, #0a2418);
   border: 2px solid #caa23a;
   border-radius: 18px;
@@ -70,6 +70,62 @@ html, body {
 .player-buttons button:active { transform: translateY(0); }
 
 .hint { margin-top: 10px; font-size: 13px; color: rgba(255, 255, 255, 0.55); }
+
+/* Scoring guide — illustrated example of each scoring combination */
+.scoring-guide { margin: 14px 0 4px; }
+.score-rows {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+}
+.score-cards { display: flex; gap: 3px; flex-shrink: 0; }
+.mini-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 34px;
+  background: #fbfaf5;
+  border: 1px solid #8a8576;
+  border-radius: 4px;
+  line-height: 1;
+  font-family: Georgia, "Times New Roman", serif;
+}
+.mc-rank { font-size: 11px; font-weight: bold; }
+.mc-suit { font-size: 13px; margin-top: 2px; }
+.score-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-align: right;
+}
+.score-name { font-size: 14px; color: #f0e9d2; }
+.score-pts {
+  min-width: 36px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #f0d24a;
+}
+
+/* Tighten on narrow screens so the rows still fit the card */
+@media (max-width: 480px) {
+  .mini-card { width: 22px; height: 29px; }
+  .mc-rank { font-size: 10px; }
+  .mc-suit { font-size: 11px; }
+  .score-name { font-size: 13px; }
+}
 
 /* Variant chooser */
 .variant-buttons {
