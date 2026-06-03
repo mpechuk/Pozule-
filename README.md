@@ -55,12 +55,13 @@ pair family scores on partial lines too.
 
 ## Enabling GitHub Pages
 
-The repo ships a deploy workflow at `.github/workflows/pages.yml`. To go live:
+The repo ships a deploy workflow at `.github/workflows/pages.yml`. It runs on
+pushes to `main` (and the development branch) and **enables Pages automatically**
+on its first successful run (`configure-pages` with `enablement: true`), so no
+manual Settings toggle is normally required.
 
-1. In **Settings → Pages**, set **Source = GitHub Actions**.
-2. Pages deploys from the default branch. If you are working on the
-   `claude/azul-poker-game-simulator-RjZE4` branch, merge it to the default
-   branch (the workflow also runs on `main`) so the deployment publishes.
+If your org disallows Actions from enabling Pages, turn it on once under
+**Settings → Pages → Source = GitHub Actions**.
 
 All asset paths are relative, so the game works correctly under the
 `/<repo>/` Pages sub-path.
