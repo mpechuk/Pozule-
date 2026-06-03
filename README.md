@@ -68,6 +68,10 @@ encoded in the URL so you can deep-link straight into one:
 - Adding `&players=2` (1–4) starts that variant immediately, skipping the setup
   screen (e.g. `index.html?variant=ponds&players=2`).
 
+When a specific variant is pinned via `?variant=`, the setup screen hides its
+variant chooser — the choice has already been made, so only the player-count
+picker is shown.
+
 ### Ponds (mahjong deck)
 
 Same rules and board, but the four 52-card decks are replaced by a **full
