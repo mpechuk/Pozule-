@@ -345,32 +345,77 @@
     }
   }
 
+  // A compact pill showing a single line's transient score, drawn just outside
+  // the grid next to the row/column/diagonal it belongs to. Colour-graded by
+  // strength so a glance reads which lines are paying off. `hint` is an optional
+  // arrow (↘ / ↙) appended for the diagonals.
+  function drawLineBadge(ctx, cx, cy, line, hint) {
+    var label = (hint ? hint + " " : "") + "+" + line.points;
+    ctx.save();
+    ctx.font = "bold 12px Georgia, serif";
+    var tw = ctx.measureText(label).width;
+    var w = tw + 12, h = 18, bx = cx - w / 2, by = cy - h / 2;
+    var strong = line.points >= 40, mid = line.points >= 15;
+    roundRect(ctx, bx, by, w, h, 9);
+    ctx.fillStyle = strong ? "rgba(240,192,64,0.92)"
+      : mid ? "rgba(63,209,112,0.9)" : "rgba(36,42,36,0.9)";
+    ctx.fill();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = strong ? "#fff0c0" : mid ? "#bdeccb" : "rgba(255,255,255,0.5)";
+    ctx.stroke();
+    ctx.fillStyle = (strong || mid) ? "#15211a" : "#f0e9d2";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, cx, cy + 1);
+    ctx.restore();
+  }
+
+  // Place a score pill beside every scoring line (5 rows, 5 cols, 2 diagonals).
+  // `s.lines` is ordered rows[0..4], cols[5..9], diag↘[10], diag↙[11]; only
+  // lines with a non-zero score get a badge, so they appear as combos are made.
+  function drawLineScores(ctx, s, x, y, cell) {
+    var n = R.GRID_SIZE, right = x + n * cell, r, L;
+    for (r = 0; r < n; r++) {                 // rows -> right edge
+      L = s.lines[r];
+      if (L.points > 0) drawLineBadge(ctx, right + 24, y + r * cell + cell / 2, L);
+    }
+    for (var c = 0; c < n; c++) {             // columns -> top edge
+      L = s.lines[n + c];
+      if (L.points > 0) drawLineBadge(ctx, x + c * cell + cell / 2, y - 14, L);
+    }
+    L = s.lines[2 * n];                        // main diagonal -> top-left
+    if (L.points > 0) drawLineBadge(ctx, x - 16, y - 14, L, "↘");
+    L = s.lines[2 * n + 1];                    // anti-diagonal -> top-right
+    if (L.points > 0) drawLineBadge(ctx, right + 24, y - 14, L, "↙");
+  }
+
   function drawCurrentBoard(ctx, g) {
     var p = g.currentPlayer();
     var x = 30, y = 502, cell = 52;
-    text(ctx, "▸ " + p.name, x, y - 12, "bold 20px Georgia, serif", "#f0c040");
+    var s = p.score();
     drawGrid(ctx, p, x, y, cell, true, g);
+    drawLineScores(ctx, s, x, y, cell);
 
     var floorX = x, floorY = y + cell * R.GRID_SIZE + 24;
     drawFloor(ctx, p, floorX, floorY, 32);
 
-    // Live stats panel.
-    var px = x + cell * R.GRID_SIZE + 30, py = y + 6;
-    var s = p.score();
-    text(ctx, "Gold: " + p.gold, px, py, "bold 20px Georgia, serif", "#f0d24a");
+    // Live stats panel (shifted right to clear the row score badges).
+    var px = x + cell * R.GRID_SIZE + 58, py = y + 6;
+    text(ctx, "▸ " + p.name, px, py, "bold 20px Georgia, serif", "#f0c040");
+    text(ctx, "Gold: " + p.gold, px, py + 28, "bold 20px Georgia, serif", "#f0d24a");
     text(ctx, "Lines: " + s.linePoints + "   Penalty: " + s.penalty,
-      px, py + 28, "16px Georgia, serif", "#e8e8e0");
-    text(ctx, "Projected total: " + s.total, px, py + 52, "bold 18px Georgia, serif", "#9fe0a8");
+      px, py + 54, "16px Georgia, serif", "#e8e8e0");
+    text(ctx, "Projected total: " + s.total, px, py + 78, "bold 18px Georgia, serif", "#9fe0a8");
 
     // Made hands so far.
     var made = s.lines.filter(function (l) { return l.points > 0; });
-    text(ctx, "Made hands:", px, py + 88, "bold 15px Georgia, serif", "#cfcabb");
+    text(ctx, "Made hands:", px, py + 114, "bold 15px Georgia, serif", "#cfcabb");
     if (made.length === 0) {
-      text(ctx, "  — none yet —", px, py + 110, "14px Georgia, serif", "rgba(255,255,255,0.5)");
+      text(ctx, "  — none yet —", px, py + 136, "14px Georgia, serif", "rgba(255,255,255,0.5)");
     }
     for (var i = 0; i < made.length && i < 8; i++) {
       text(ctx, made[i].name + ": " + made[i].hand + " (+" + made[i].points + ")",
-        px, py + 110 + i * 20, "14px Georgia, serif", "#dfe7d6");
+        px, py + 136 + i * 20, "14px Georgia, serif", "#dfe7d6");
     }
   }
 
