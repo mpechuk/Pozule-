@@ -414,6 +414,57 @@
       { primary: true });
   }
 
+  function drawShuffling(ctx, g) {
+    var now = performance.now();
+    var elapsed = now - g.shuffleStart;
+    var progress = Math.max(0, Math.min(1, elapsed / R.SHUFFLE_MS));
+
+    ctx.save();
+    ctx.fillStyle = "rgba(0,0,0,0.72)";
+    ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+
+    var w = 560, h = 320, x = (W - w) / 2, y = (H - h) / 2;
+    roundRect(ctx, x, y, w, h, 16);
+    ctx.fillStyle = "#15211a"; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = "#f0c040"; ctx.stroke();
+
+    text(ctx, "Shuffling the deck…", x + w / 2, y + 52,
+      "bold 28px Georgia, serif", "#f0c040", "center");
+    text(ctx, "Round " + g.round, x + w / 2, y + 84,
+      "20px Georgia, serif", "#e8e8e0", "center");
+
+    // Riffle animation: card backs arc from a left stack to a right stack.
+    var cx = x + w / 2, cy = y + 168;
+    var leftX = cx - 130, rightX = cx + 130, deckY = cy, tw = 46, th = 64;
+    drawCardBack(ctx, leftX - tw / 2, deckY - th / 2 + 6, tw, th);
+    drawCardBack(ctx, rightX - tw / 2, deckY - th / 2 + 6, tw, th);
+    for (var k = 0; k < 10; k++) {
+      var t = ((now / 700) + k * 0.13) % 1;
+      var fx = leftX + (rightX - leftX) * t;
+      var fy = deckY - Math.sin(t * Math.PI) * 78;
+      var rot = (t - 0.5) * 0.5;
+      ctx.save();
+      ctx.translate(fx, fy);
+      ctx.rotate(rot);
+      drawCardBack(ctx, -tw / 2, -th / 2, tw, th);
+      ctx.restore();
+    }
+
+    if (g.lastDealerReturn) {
+      text(ctx, g.lastDealerReturn.name + " pays " + g.lastDealerReturn.cost +
+        " gold — dealer button returns to the center.",
+        x + w / 2, y + h - 56, "15px Georgia, serif", "#f0d24a", "center");
+    }
+
+    // Progress bar.
+    var bw = w - 120, bx = x + 60, by = y + h - 34;
+    roundRect(ctx, bx, by, bw, 12, 6);
+    ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fill();
+    roundRect(ctx, bx, by, bw * progress, 12, 6);
+    ctx.fillStyle = "#3fd170"; ctx.fill();
+  }
+
   // --- Main draw -------------------------------------------------------------
 
   function draw(ctx, g) {
@@ -435,6 +486,7 @@
     drawCurrentBoard(ctx, g);
     drawOpponents(ctx, g);
 
+    if (g.phase === "SHUFFLING") drawShuffling(ctx, g);
     if (g.phase === "PAY_GOLD") drawPayGold(ctx, g);
     if (g.phase === "GAME_OVER") drawGameOver(ctx, g);
   }

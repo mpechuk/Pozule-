@@ -25,7 +25,13 @@
   }
 
   function loop() {
-    if (game) P.render.draw(ctx, game);
+    if (game) {
+      if (game.phase === "SHUFFLING" &&
+          performance.now() - game.shuffleStart >= P.rules.SHUFFLE_MS) {
+        game.finishShuffle();
+      }
+      P.render.draw(ctx, game);
+    }
     requestAnimationFrame(loop);
   }
 

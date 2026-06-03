@@ -12,6 +12,7 @@
   var GRID_SIZE = 5;
   var FLOP_SIZE = 3;
   var BAG_DECKS = 4;
+  var SHUFFLE_MS = 5000; // between-rounds shuffling animation
 
   // Azul scaling: 2*players + 1 factories (solo uses 5).
   function factoryCount(players) {
@@ -63,6 +64,7 @@
     GRID_SIZE: GRID_SIZE,
     FLOP_SIZE: FLOP_SIZE,
     BAG_DECKS: BAG_DECKS,
+    SHUFFLE_MS: SHUFFLE_MS,
     factoryCount: factoryCount,
     isRainbowSet: isRainbowSet,
     canAddToSet: canAddToSet,

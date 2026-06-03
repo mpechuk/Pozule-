@@ -30,10 +30,15 @@
 
     this.current = 0;
     this.startPlayer = 0;
+    this.round = 1;
 
     this.endTriggered = false;
     this.finalNeed = 0;
     this.finalDone = 0;
+
+    // Round-transition state.
+    this.shuffleStart = 0;          // performance.now() when SHUFFLING began
+    this.lastDealerReturn = null;   // { name, cost } shown during shuffle
 
     // Per-turn working state.
     this.phase = "SELECT_SOURCE";
@@ -308,13 +313,57 @@
     }
 
     if (!this.endTriggered && this.tableEmpty()) {
-      this._refillFactories();
-      this.current = this.startPlayer;
+      this._startShuffle();
+      return;
     }
 
     this.phase = "SELECT_SOURCE";
     if (!this.message) this.message = this.currentPlayer().name + ": pick a factory or the center.";
     else this.message += "  " + this.currentPlayer().name + "'s turn.";
+    this._notify();
+  };
+
+  // The dealer button is returned to the center at the start of each new round:
+  // its holder automatically pays gold equal to the floor slot it occupies, the
+  // slot is freed, and that player will deal (go first) next round.
+  Game.prototype._returnDealerButton = function () {
+    this.lastDealerReturn = null;
+    for (var i = 0; i < this.players.length; i++) {
+      var pl = this.players[i];
+      var idx = pl.floor.findIndex(function (t) { return t && t.dealer; });
+      if (idx === -1) continue;
+      var slot = Math.min(idx, R.FLOOR_SLOTS - 1);
+      var cost = Math.abs(R.FLOOR_PENALTIES[slot]);
+      pl.gold = Math.max(0, pl.gold - cost);
+      pl.floor.splice(idx, 1);
+      this.startPlayer = pl.id;            // dealer goes first next round
+      this.lastDealerReturn = { name: pl.name, cost: cost };
+      break;
+    }
+  };
+
+  // Begin the between-rounds "shuffle": return the dealer button, then show the
+  // shuffling animation. main.js calls finishShuffle() once SHUFFLE_MS elapses.
+  Game.prototype._startShuffle = function () {
+    this.round += 1;
+    this._returnDealerButton();
+    this.phase = "SHUFFLING";
+    this.shuffleStart = performance.now();
+    this.message = "Shuffling… Round " + this.round +
+      (this.lastDealerReturn
+        ? " (" + this.lastDealerReturn.name + " pays " + this.lastDealerReturn.cost +
+          " gold to pass the button)"
+        : "");
+    this._notify();
+  };
+
+  Game.prototype.finishShuffle = function () {
+    if (this.phase !== "SHUFFLING") return;
+    this._refillFactories();             // also returns the button to the center
+    this.current = this.startPlayer;
+    this.phase = "SELECT_SOURCE";
+    this.message = this.currentPlayer().name +
+      " deals and goes first — pick a factory or the center.";
     this._notify();
   };
 
