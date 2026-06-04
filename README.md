@@ -102,6 +102,21 @@ Pair, Two Pair, Three of a Kind, Four of a Kind, Full House (three + a pair),
 Run (five in sequence), Suited (five of one suit), Suited Run, and the Grand
 Run — using the same point values as the classic table above.
 
+#### Illustrated tile faces
+
+The dots (circles), characters, bamboo and honor suits render with hand-
+illustrated **sprite tile faces** instead of the text/symbol faces used
+elsewhere. The faces are sliced on the fly from the sprite sheets —
+`6AC50434-…png` (dots 1–9), `6DC6A8E6-…png` (characters 1–9), and the combined
+`CB9AE6DD-…png`, whose quadrants supply bamboo 1–9 and the honors (winds
+East/South/West/North + dragons White/Green/Red). The numbered suits are 9×4
+grids of rank × decorative variant; the honors quadrant is a bespoke layout, so
+each rank maps to an explicit source rectangle. `src/sprites.js` owns this
+geometry and a `draw()` that blits the right cell into a card; the bonus
+(flower/season) tiles and the classic poker deck fall back to the text faces
+automatically, and so does everything while the artwork is still loading. Set
+`ENABLED = false` in `src/sprites.js` to force the text faces everywhere.
+
 ## Deployment & PR previews
 
 Hosting is GitHub Pages, served from the **`gh-pages` branch** (the site is
@@ -134,6 +149,7 @@ index.html              # page shell + setup screen, loads the scripts
 styles.css              # setup screen + canvas styling
 src/variant.js          # variant select (?variant=): deck spec, theme, labels
 src/deck.js             # cards, suits/ranks, the bag, shuffle (built per variant)
+src/sprites.js          # optional bitmap tile faces (mahjong dots & characters)
 src/poker.js            # pure poker-hand evaluation for a line
 src/rules.js            # constants + draft/floor/gold rule helpers
 src/player.js           # Player state + controller seam (Human now, AI later)

@@ -89,22 +89,24 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 8px;
 }
-.score-cards { display: flex; gap: 3px; flex-shrink: 0; }
+.score-cards { display: flex; gap: 4px; flex-shrink: 0; }
 .mini-card {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 34px;
+  width: 32px;
+  height: 42px;
   background: #fbfaf5;
   border: 1px solid #8a8576;
-  border-radius: 4px;
+  border-radius: 5px;
   line-height: 1;
   font-family: Georgia, "Times New Roman", serif;
 }
-.mc-rank { font-size: 11px; font-weight: bold; }
-.mc-suit { font-size: 13px; margin-top: 2px; }
+/* sprite tile faces paint onto the canvas; the CSS box just sizes/frames it */
+canvas.mini-card { padding: 0; }
+.mc-rank { font-size: 13px; font-weight: bold; }
+.mc-suit { font-size: 16px; margin-top: 2px; }
 .score-meta {
   display: flex;
   align-items: baseline;
@@ -119,12 +121,24 @@ html, body {
   color: #f0d24a;
 }
 
-/* Tighten on narrow screens so the rows still fit the card */
+/* On narrow screens, stack each row so the combo tiles can be much larger:
+   the illustrated tiles get a full-width row of their own, with the combo
+   name and points centered beneath them. */
 @media (max-width: 480px) {
-  .mini-card { width: 22px; height: 29px; }
-  .mc-rank { font-size: 10px; }
-  .mc-suit { font-size: 11px; }
-  .score-name { font-size: 13px; }
+  .setup-card { padding: 26px 16px; }
+  .score-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 8px;
+  }
+  .score-cards { gap: 6px; }
+  .mini-card { width: 54px; height: 72px; border-radius: 6px; }
+  .mc-rank { font-size: 20px; }
+  .mc-suit { font-size: 26px; margin-top: 3px; }
+  .score-meta { width: 100%; justify-content: center; gap: 16px; }
+  .score-name { font-size: 17px; }
+  .score-pts { font-size: 19px; min-width: 0; }
 }
 
 /* Variant chooser */
