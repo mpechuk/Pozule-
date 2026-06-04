@@ -298,9 +298,9 @@
       // never covers grid cells, score badges, the stats panel or opponents.
       var remain = Math.max(0, R.PASS_MS - (performance.now() - g.passStart));
       var secs = Math.ceil(remain / 1000);
-      text(ctx, "Pass the device — " + g.currentPlayer().name + " is up next.",
+      text(ctx, "Turn over — review your board, then pass to " + g.nextPlayer().name + ".",
         x + 16, y + 30, "bold 17px Georgia, serif", "#f0e9d2");
-      text(ctx, "Tap to continue, or it advances automatically in " + secs + "s.",
+      text(ctx, "Tap Pass turn, or it advances automatically in " + secs + "s.",
         x + 16, y + 54, "14px Georgia, serif", "rgba(255,255,255,0.65)");
       drawButton(ctx, x + 20, y + 66, 220, 44, "Pass turn", "passTurn", { primary: true });
       // Slim countdown bar beside the button (drains toward zero).

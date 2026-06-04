@@ -91,6 +91,12 @@
 
   Game.prototype.currentPlayer = function () { return this.players[this.current]; };
 
+  // Whoever will play after the current hand-off resolves (used by the PASS_TURN
+  // prompt, where `current` still points at the finishing player).
+  Game.prototype.nextPlayer = function () {
+    return this.players[(this.current + 1) % this.players.length];
+  };
+
   // --- Source selection ------------------------------------------------------
 
   Game.prototype.selectFactory = function (index) {
@@ -309,8 +315,9 @@
       this.finalDone++;
     }
 
-    this.current = (this.current + 1) % this.players.length;
-
+    // Terminal transitions first. Neither depends on whose turn is "current"
+    // (final scoring ends the game; the shuffle picks the dealer as next first
+    // player), so we can decide them before advancing.
     if (this.endTriggered && (this.finalDone >= this.finalNeed || this.tableEmpty())) {
       this._finalScoring();
       return;
@@ -322,9 +329,9 @@
     }
 
     // Shared-screen hand-off: with multiple players, pause on a "pass turn"
-    // screen so the device can change hands. It auto-advances after PASS_MS if
-    // nobody taps the button (main.js drives the timer). Solo play has nobody to
-    // pass to, so it proceeds straight to the next turn.
+    // screen so the device can change hands. Crucially we do NOT advance the
+    // current player yet — the finishing player keeps seeing their own board
+    // until they (or the auto-advance timer in main.js) confirm the pass.
     if (this.players.length > 1) {
       this.phase = "PASS_TURN";
       this.passStart = performance.now();
@@ -332,7 +339,13 @@
       return;
     }
 
+    // Solo: nobody to pass to, advance straight into the next turn.
+    this._advanceTurn();
     this._beginTurn();
+  };
+
+  Game.prototype._advanceTurn = function () {
+    this.current = (this.current + 1) % this.players.length;
   };
 
   // Start the current player's turn at source selection. Reached either directly
@@ -344,9 +357,10 @@
     this._notify();
   };
 
-  // Tapping "Pass turn" (or the auto-advance timer) ends the hand-off.
+  // Tapping "Pass turn" (or the auto-advance timer) hands off to the next player.
   Game.prototype.passTurn = function () {
     if (this.phase !== "PASS_TURN") return;
+    this._advanceTurn();
     this._beginTurn();
   };
 
