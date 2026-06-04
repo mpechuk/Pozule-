@@ -7,12 +7,14 @@
  *
  *   dots  -> 6AC50434…png  (Dots / Circles 1-9, four colour variants each)
  *   chr   -> 6DC6A8E6…png  (Characters 1-9, four sea-creature variants each)
+ *   bam   -> CB9AE6DD…png  (Bamboo 1-9, four variants — bottom-left quadrant of
+ *                           the combined four-suit sheet)
  *
  * Each sheet is a 9-column (rank 1-9) × 4-row (decorative variant) grid with a
  * title banner up top. The per-tile source rectangles below were measured from
- * the artwork. Suits without a sheet (bamboo, honors, bonus) and the classic
- * poker deck fall back to the text faces in render.js automatically, because
- * `draw()` reports back whether it actually rendered anything.
+ * the artwork. Suits without a sheet (honors, bonus) and the classic poker deck
+ * fall back to the text faces in render.js automatically, because `draw()`
+ * reports back whether it actually rendered anything.
  *
  * Images load asynchronously; until a sheet is ready `draw()` returns false so
  * the caller keeps using the text face. The render loop redraws every frame, so
@@ -37,6 +39,14 @@
       cols: [[87, 143], [239, 144], [392, 143], [543, 146], [697, 144],
              [848, 147], [1005, 146], [1159, 144], [1311, 143]],
       rows: [[105, 205], [328, 211], [557, 210], [782, 200]],
+    },
+    // Bamboo lives in the bottom-left quadrant of the combined four-suit sheet,
+    // so its source rectangles are offset into that quadrant.
+    bam: {
+      src: "CB9AE6DD-66F6-45FE-B50B-0DEF3C6A82E2.png",
+      cols: [[29, 70], [103, 69], [176, 69], [248, 68], [319, 68],
+             [390, 68], [461, 68], [531, 68], [603, 68]],
+      rows: [[624, 103], [742, 106], [865, 106], [982, 105]],
     },
   };
 
