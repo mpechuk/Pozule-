@@ -162,6 +162,8 @@
     dom: {
       title: "Pozule — Ponds",
       h1: "POZULE",
+      // Bitmap logo shown in place of the "POZULE" wordmark on the setup screen.
+      logo: "IMG_4991.png",
       ponds: true,
       tag: "A tile-matching variant played across <strong>ponds</strong>.",
       how:
