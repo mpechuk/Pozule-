@@ -1,0 +1,276 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: #06140d;
+  color: #f0eee4;
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+#app {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+/* --- Setup screen --- */
+#setup {
+  width: 100%;
+  min-height: 90vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.setup-card {
+  max-width: 560px;
+  background: linear-gradient(160deg, #11402c, #0a2418);
+  border: 2px solid #caa23a;
+  border-radius: 18px;
+  padding: 36px 40px;
+  text-align: center;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.5);
+}
+
+.setup-card h1 {
+  font-size: 52px;
+  letter-spacing: 6px;
+  color: #f0c040;
+  text-shadow: 0 2px 0 #6b4a23;
+}
+
+/* Bitmap logo shown in place of the text wordmark on the setup screen. */
+.setup-logo {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 160px;
+  height: auto;
+}
+
+.tag { margin-top: 6px; color: #d8d4c4; font-size: 18px; }
+.how { margin: 20px 0; line-height: 1.6; color: #cfcabb; font-size: 15px; }
+.choose { margin-top: 14px; font-size: 18px; color: #f0e9d2; }
+
+.player-buttons {
+  margin: 16px 0 8px;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.player-buttons button {
+  width: 70px;
+  height: 70px;
+  font-size: 28px;
+  font-family: Georgia, serif;
+  font-weight: bold;
+  color: #f4f0e2;
+  background: #1f7a3d;
+  border: 2px solid #3fd170;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.15s ease;
+}
+.player-buttons button:hover { background: #2a9b4f; transform: translateY(-2px); }
+.player-buttons button:active { transform: translateY(0); }
+.player-buttons button.active {
+  border-color: #f0c040;
+  box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.35);
+}
+.setup-card.ponds .player-buttons button.active {
+  border-color: #6fd0ec;
+  box-shadow: 0 0 0 3px rgba(111, 208, 236, 0.35);
+}
+
+.hint { margin-top: 10px; font-size: 13px; color: rgba(255, 255, 255, 0.55); }
+
+/* Per-seat Human / AI configuration */
+.seat-config {
+  margin: 12px auto 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 280px;
+}
+.seat-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 14px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+}
+.seat-label { font-size: 16px; color: #f0e9d2; }
+.seat-toggle {
+  min-width: 92px;
+  padding: 8px 16px;
+  font-size: 15px;
+  font-family: Georgia, serif;
+  font-weight: bold;
+  color: #f4f0e2;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+}
+.seat-toggle:active { transform: translateY(1px); }
+.seat-toggle.human {
+  background: #1f7a3d;
+  border: 2px solid #3fd170;
+}
+.seat-toggle.human:hover { background: #2a9b4f; }
+.seat-toggle.ai {
+  background: #7a4a1f;
+  border: 2px solid #d1a13f;
+}
+.seat-toggle.ai:hover { background: #9b6a2a; }
+
+.start-btn {
+  margin: 16px auto 4px;
+  display: block;
+  padding: 14px 40px;
+  font-size: 22px;
+  font-family: Georgia, serif;
+  font-weight: bold;
+  color: #1a1206;
+  background: #f0c040;
+  border: 2px solid #f6e6b0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.08s ease;
+}
+.start-btn:hover { background: #f6d264; transform: translateY(-2px); }
+.start-btn:active { transform: translateY(0); }
+
+/* Scoring guide — illustrated example of each scoring combination */
+.scoring-guide { margin: 14px 0 4px; }
+.score-rows {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 5px 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+}
+.score-cards { display: flex; gap: 4px; flex-shrink: 0; }
+.mini-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 42px;
+  background: #fbfaf5;
+  border: 1px solid #8a8576;
+  border-radius: 5px;
+  line-height: 1;
+  font-family: Georgia, "Times New Roman", serif;
+}
+/* sprite tile faces paint onto the canvas; the CSS box just sizes/frames it */
+canvas.mini-card { padding: 0; }
+.mc-rank { font-size: 13px; font-weight: bold; }
+.mc-suit { font-size: 16px; margin-top: 2px; }
+.score-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-align: right;
+}
+.score-name { font-size: 14px; color: #f0e9d2; }
+.score-pts {
+  min-width: 36px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #f0d24a;
+}
+
+/* On narrow screens, stack each row so the combo tiles can be much larger:
+   the illustrated tiles get a full-width row of their own, with the combo
+   name and points centered beneath them. */
+@media (max-width: 480px) {
+  .setup-card { padding: 26px 16px; }
+  .score-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 8px;
+  }
+  .score-cards { gap: 6px; }
+  .mini-card { width: 54px; height: 72px; border-radius: 6px; }
+  .mc-rank { font-size: 20px; }
+  .mc-suit { font-size: 26px; margin-top: 3px; }
+  .score-meta { width: 100%; justify-content: center; gap: 16px; }
+  .score-name { font-size: 17px; }
+  .score-pts { font-size: 19px; min-width: 0; }
+}
+
+/* Variant chooser */
+.variant-buttons {
+  margin: 12px 0 8px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.variant-buttons button {
+  padding: 10px 18px;
+  font-size: 16px;
+  font-family: Georgia, serif;
+  color: #f4f0e2;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.variant-buttons button:hover { background: rgba(255, 255, 255, 0.14); }
+.variant-buttons button.active {
+  border-color: #f0c040;
+  background: rgba(240, 192, 64, 0.16);
+  color: #f6e6b0;
+}
+
+/* Ponds theme for the setup card (water tones) */
+.setup-card.ponds {
+  background: linear-gradient(160deg, #11455a, #06212c);
+  border-color: #3f8fb0;
+}
+.setup-card.ponds h1 { color: #6fd0ec; text-shadow: 0 2px 0 #123846; }
+.setup-card.ponds .player-buttons button {
+  background: #1f6f9a;
+  border-color: #57b6d8;
+}
+.setup-card.ponds .player-buttons button:hover { background: #2a88ba; }
+.setup-card.ponds .seat-toggle.human {
+  background: #1f6f9a;
+  border-color: #57b6d8;
+}
+.setup-card.ponds .seat-toggle.human:hover { background: #2a88ba; }
+.setup-card.ponds .start-btn {
+  background: #6fd0ec;
+  border-color: #bdeafa;
+}
+.setup-card.ponds .start-btn:hover { background: #8ddcf2; }
+
+/* --- Board --- */
+#board {
+  display: none;
+  width: min(100%, 1280px);
+  height: auto;
+  aspect-ratio: 1280 / 860;
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+}
