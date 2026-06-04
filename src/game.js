@@ -17,6 +17,13 @@
   var deck = P.deck;
   var R = P.rules;
 
+  // Variant-flavoured currency name, lowercased for use inside sentences
+  // (e.g. "gold" for Classic, "pearls" for the Ponds/mahjong variant).
+  function currency() {
+    var c = P.variant && P.variant.labels && P.variant.labels.currency;
+    return (c || "Gold").toLowerCase();
+  }
+
   function Game(playerDefs) {
     this.players = playerDefs.map(function (d, i) {
       return new P.Player(i, d.name, d.controller);
@@ -243,17 +250,17 @@
     if (p.gold >= cost) {
       this.pendingFloor = token;
       this.phase = "PAY_GOLD";
-      this.message = "Floor is full. Pay " + cost + " gold to clear the bottom slot?";
+      this.message = "Floor is full. Pay " + cost + " " + currency() + " to clear the bottom slot?";
       this._notify();
     } else if (p.emptyCells() > 0) {
-      this.message = "Not enough gold (" + cost + "). Place this card on your grid.";
+      this.message = "Not enough " + currency() + " (" + cost + "). Place this card on your grid.";
       this._notify();
     } else {
       // Grid full and can't pay: discard the card, penalty forgiven (rare).
       this.held.splice(this.activeHeld, 1);
       this.discard.push(token);
       if (this.activeHeld >= this.held.length) this.activeHeld = Math.max(0, this.held.length - 1);
-      this.message = "No room and no gold — card discarded.";
+      this.message = "No room and no " + currency() + " — card discarded.";
       this._afterPlacement();
     }
   };
@@ -393,7 +400,7 @@
     this.message = "Shuffling… Round " + this.round +
       (this.lastDealerReturn
         ? " (" + this.lastDealerReturn.name + " pays " + this.lastDealerReturn.cost +
-          " gold to pass the button)"
+          " " + currency() + " to pass the button)"
         : "");
     this._notify();
   };

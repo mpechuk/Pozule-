@@ -9,15 +9,15 @@
 
   // Hand name -> point value. Higher is better; also used for tie-break order.
   var HAND_POINTS = {
-    "Royal Flush": 100,
-    "Straight Flush": 75,
-    "Four of a Kind": 50,
-    "Full House": 40,
-    "Flush": 30,
-    "Straight": 25,
-    "Three of a Kind": 15,
-    "Two Pair": 10,
-    "One Pair": 5,
+    "Royal Flush": 500,
+    "Straight Flush": 375,
+    "Four of a Kind": 250,
+    "Full House": 200,
+    "Flush": 150,
+    "Straight": 125,
+    "Three of a Kind": 75,
+    "Two Pair": 50,
+    "One Pair": 25,
     "High Card": 0,
     "Empty": 0,
   };
