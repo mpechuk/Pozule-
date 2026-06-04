@@ -3,17 +3,21 @@
  *
  * Instead of drawing a tile's rank/suit with canvas text (the default for every
  * variant), this module blits a hand-illustrated tile face from a sprite sheet.
- * Two sheets are wired up:
+ * Four suits are wired up:
  *
  *   dots  -> 6AC50434…png  (Dots / Circles 1-9, four colour variants each)
  *   chr   -> 6DC6A8E6…png  (Characters 1-9, four sea-creature variants each)
- *   bam   -> CB9AE6DD…png  (Bamboo 1-9, four variants — bottom-left quadrant of
- *                           the combined four-suit sheet)
+ *   bam   -> CB9AE6DD…png  (Bamboo 1-9 — bottom-left quadrant of the combined
+ *                           four-suit sheet)
+ *   honor -> CB9AE6DD…png  (Winds E/S/W/N + Dragons White/Green/Red — bottom-
+ *                           right quadrant of the same combined sheet)
  *
- * Each sheet is a 9-column (rank 1-9) × 4-row (decorative variant) grid with a
- * title banner up top. The per-tile source rectangles below were measured from
- * the artwork. Suits without a sheet (honors, bonus) and the classic poker deck
- * fall back to the text faces in render.js automatically, because `draw()`
+ * The numbered suits are laid out as a 9-column (rank 1-9) × 4-row (decorative
+ * variant) grid, described by `cols`/`rows`. The honors quadrant is a bespoke
+ * layout (a dragon row above two wind rows), so it instead maps each rank to an
+ * explicit `[x, y, w, h]` source rectangle via `tiles`. All rectangles were
+ * measured from the artwork. Suits without a sheet (bonus) and the classic poker
+ * deck fall back to the text faces in render.js automatically, because `draw()`
  * reports back whether it actually rendered anything.
  *
  * Images load asynchronously; until a sheet is ready `draw()` returns false so
@@ -26,41 +30,69 @@
   // Master switch — flip to false to force the text faces everywhere.
   var ENABLED = true;
 
-  // Per-sheet geometry. `cols`/`rows` are [offset, size] pairs in source pixels.
+  var DOTS = "6AC50434-C16A-436E-B544-9E4476C6164F.png";
+  var CHR = "6DC6A8E6-B0AE-4538-A2DE-01CED8D980BD.png";
+  var COMBINED = "CB9AE6DD-66F6-45FE-B50B-0DEF3C6A82E2.png"; // bamboo + honors
+
+  // Per-sheet geometry. Numbered suits use `cols`/`rows` (each an [offset, size]
+  // pair); the honors suit uses `tiles` (rank -> [x, y, w, h]).
   var SHEETS = {
     dots: {
-      src: "6AC50434-C16A-436E-B544-9E4476C6164F.png",
+      src: DOTS,
       cols: [[58, 136], [205, 135], [350, 140], [500, 143], [653, 145],
              [809, 149], [969, 147], [1128, 159], [1297, 163]],
       rows: [[105, 205], [332, 212], [566, 205], [792, 193]],
     },
     chr: {
-      src: "6DC6A8E6-B0AE-4538-A2DE-01CED8D980BD.png",
+      src: CHR,
       cols: [[87, 143], [239, 144], [392, 143], [543, 146], [697, 144],
              [848, 147], [1005, 146], [1159, 144], [1311, 143]],
       rows: [[105, 205], [328, 211], [557, 210], [782, 200]],
     },
-    // Bamboo lives in the bottom-left quadrant of the combined four-suit sheet,
-    // so its source rectangles are offset into that quadrant.
+    // Bamboo lives in the bottom-left quadrant of the combined four-suit sheet.
     bam: {
-      src: "CB9AE6DD-66F6-45FE-B50B-0DEF3C6A82E2.png",
+      src: COMBINED,
       cols: [[29, 70], [103, 69], [176, 69], [248, 68], [319, 68],
              [390, 68], [461, 68], [531, 68], [603, 68]],
       rows: [[624, 103], [742, 106], [865, 106], [982, 105]],
     },
+    // Honors live in the bottom-right quadrant: a row of dragons above two rows
+    // of winds. Ranks match the deck spec in variant.js (winds E/S/W/N, dragons
+    // Wh/Gr/Rd). Each rank points at one representative tile.
+    honor: {
+      src: COMBINED,
+      tiles: {
+        Rd: [712, 612, 96, 128],   // 中 — red dragon
+        Gr: [815, 612, 95, 128],   // 發 — green dragon
+        Wh: [918, 612, 95, 128],   // 白 — white dragon
+        E:  [730, 750, 73, 125],   // 東 — east wind
+        S:  [1053, 750, 74, 125],  // 南 — south wind
+        W:  [730, 898, 73, 125],   // 西 — west wind
+        N:  [1053, 898, 74, 125],  // 北 — north wind
+      },
+    },
   };
 
-  // Kick off image decoding once. `loaded` gates drawing per sheet.
+  // Decode each distinct image once, sharing it across sheets that reuse a file
+  // (bamboo and honors both come from the combined sheet). `loaded` flips true
+  // when the bitmap is ready to blit.
+  var IMAGES = {};
   Object.keys(SHEETS).forEach(function (key) {
     var s = SHEETS[key];
-    if (typeof Image === "undefined") return; // non-browser (tests) — stay font-only
-    var img = new Image();
-    img.onload = function () { s.loaded = true; };
-    img.src = s.src;
-    s.img = img;
+    var rec = IMAGES[s.src];
+    if (!rec) {
+      rec = IMAGES[s.src] = { loaded: false };
+      if (typeof Image !== "undefined") { // browser only; tests stay font-only
+        var img = new Image();
+        img.onload = function () { rec.loaded = true; };
+        img.src = s.src;
+        rec.img = img;
+      }
+    }
+    s.image = rec;
   });
 
-  // Rank "1".."9" -> column index 0..8 (only numbered suits have sprites).
+  // Rank "1".."9" -> column index 0..8 (only numbered suits have a grid).
   function rankIndex(rank) {
     var n = parseInt(rank, 10);
     return (n >= 1 && n <= 9) ? n - 1 : -1;
@@ -68,16 +100,32 @@
 
   // A sprite face exists for this suit/rank (independent of load state).
   function has(suit, rank) {
-    return ENABLED && !!SHEETS[suit] && rankIndex(rank) >= 0;
+    var s = SHEETS[suit];
+    if (!ENABLED || !s) return false;
+    return s.tiles ? Object.prototype.hasOwnProperty.call(s.tiles, rank)
+                   : rankIndex(rank) >= 0;
   }
 
-  // Pick one of the four decorative variants. Keyed by a stable string (a tile's
-  // id) so a given physical tile always shows the same face, while the board as
-  // a whole still gets all four variants — purely cosmetic.
-  function variantRow(key, rowCount) {
+  // Pick one of N decorative variants. Keyed by a stable string (a tile's id) so
+  // a given physical tile always shows the same face, while the board as a whole
+  // still gets all the variants — purely cosmetic.
+  function variantIndex(key, count) {
     var h = 0, str = "" + key;
     for (var i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) >>> 0;
-    return h % rowCount;
+    return h % count;
+  }
+
+  // Resolve the [sx, sy, sw, sh] source rectangle for (sheet, rank), or null.
+  function srcRect(sheet, rank, key) {
+    if (sheet.tiles) {
+      var t = sheet.tiles[rank];
+      return t ? [t[0], t[1], t[2], t[3]] : null;
+    }
+    var ci = rankIndex(rank);
+    if (ci < 0) return null;
+    var ri = variantIndex(key != null ? key : rank, sheet.rows.length);
+    var col = sheet.cols[ci], row = sheet.rows[ri];
+    return [col[0], row[0], col[1], row[1]];
   }
 
   function roundRectPath(ctx, x, y, w, h, r) {
@@ -97,13 +145,10 @@
   function draw(ctx, suit, rank, x, y, w, h, opts) {
     opts = opts || {};
     var sheet = SHEETS[suit];
-    if (!ENABLED || !sheet || !sheet.loaded) return false;
-    var ci = rankIndex(rank);
-    if (ci < 0) return false;
-
-    var ri = variantRow(opts.key != null ? opts.key : rank, sheet.rows.length);
-    var col = sheet.cols[ci], row = sheet.rows[ri];
-    var sx = col[0], sw = col[1], sy = row[0], sh = row[1];
+    if (!ENABLED || !sheet || !sheet.image.loaded) return false;
+    var rect = srcRect(sheet, rank, opts.key);
+    if (!rect) return false;
+    var sx = rect[0], sy = rect[1], sw = rect[2], sh = rect[3];
 
     // Fit the portrait tile inside the (often squarer) card, preserving aspect
     // so it never looks stretched; the card's own fill shows through any letter-
@@ -120,7 +165,7 @@
     roundRectPath(ctx, x + 1, y + 1, w - 2, h - 2, opts.radius != null ? opts.radius : 5);
     ctx.clip();
     if (opts.dim) ctx.globalAlpha = 0.5;
-    ctx.drawImage(sheet.img, sx, sy, sw, sh, dx, dy, dw, dh);
+    ctx.drawImage(sheet.image.img, sx, sy, sw, sh, dx, dy, dw, dh);
     ctx.restore();
     return true;
   }

@@ -104,16 +104,18 @@ Run — using the same point values as the classic table above.
 
 #### Illustrated tile faces
 
-The dots (circles), characters and bamboo suits render with hand-illustrated
-**sprite tile faces** instead of the text/symbol faces used elsewhere. The faces
-are sliced on the fly from the sprite sheets — `6AC50434-…png` (dots 1–9),
-`6DC6A8E6-…png` (characters 1–9) and the bamboo quadrant of `CB9AE6DD-…png`
-(bamboo 1–9) — each a 9×4 grid of rank × decorative variant. `src/sprites.js`
-owns the sheet geometry and a `draw()` that blits the right cell into a card;
-suits without a sheet (honors, bonus) and the classic poker deck fall back to
-the text faces automatically, and so does everything while the artwork is still
-loading. Set `ENABLED = false` in `src/sprites.js` to force the text faces
-everywhere.
+The dots (circles), characters, bamboo and honor suits render with hand-
+illustrated **sprite tile faces** instead of the text/symbol faces used
+elsewhere. The faces are sliced on the fly from the sprite sheets —
+`6AC50434-…png` (dots 1–9), `6DC6A8E6-…png` (characters 1–9), and the combined
+`CB9AE6DD-…png`, whose quadrants supply bamboo 1–9 and the honors (winds
+East/South/West/North + dragons White/Green/Red). The numbered suits are 9×4
+grids of rank × decorative variant; the honors quadrant is a bespoke layout, so
+each rank maps to an explicit source rectangle. `src/sprites.js` owns this
+geometry and a `draw()` that blits the right cell into a card; the bonus
+(flower/season) tiles and the classic poker deck fall back to the text faces
+automatically, and so does everything while the artwork is still loading. Set
+`ENABLED = false` in `src/sprites.js` to force the text faces everywhere.
 
 ## Deployment & PR previews
 
