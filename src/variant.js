@@ -72,6 +72,7 @@
     // running the example through the engine, so it can never drift from the
     // real scoring. `name` is the label players see for the combo.
     scoring: [
+      { name: "Five of a Kind",  cards: [["9","S"],["9","H"],["9","D"],["9","C"],["9","S"]] },
       { name: "Royal Flush",     cards: [["10","S"],["J","S"],["Q","S"],["K","S"],["A","S"]] },
       { name: "Straight Flush",  cards: [["5","H"],["6","H"],["7","H"],["8","H"],["9","H"]] },
       { name: "Four of a Kind",  cards: [["9","S"],["9","H"],["9","D"],["9","C"],["2","S"]] },
@@ -173,7 +174,8 @@
         "suit, and build matching combos across the rows, columns and diagonals " +
         "of your 5×5 grid. Overflow lands on the floor; pay pearls to keep playing." +
         "<br><br><strong>Combos (best present in each line scores):</strong><br>" +
-        "Grand Run (500) · Suited Run, five in sequence of one suit (375) · " +
+        "Five of a Kind (600) · Grand Run (500) · " +
+        "Suited Run, five in sequence of one suit (375) · " +
         "Four of a Kind (250) · Full House, three + a pair (200) · " +
         "Suited, five of one suit (150) · Run, five in sequence (125) · " +
         "Three of a Kind (75) · Two Pair (50) · One Pair (25).<br>" +
@@ -184,6 +186,7 @@
     // poker hands: Grand Run = Royal Flush, Suited Run = Straight Flush, Suited
     // = Flush, Run = Straight), and the point value shown is computed live.
     scoring: [
+      { name: "Five of a Kind",  cards: [["7","dots"],["7","dots"],["7","dots"],["7","dots"],["7","bam"]] },
       { name: "Grand Run",       cards: [["E","honor"],["S","honor"],["W","honor"],["N","honor"],["Wh","honor"]] },
       { name: "Suited Run",      cards: [["1","dots"],["2","dots"],["3","dots"],["4","dots"],["5","dots"]] },
       { name: "Four of a Kind",  cards: [["7","dots"],["7","dots"],["7","bam"],["7","chr"],["2","honor"]] },

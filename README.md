@@ -51,12 +51,15 @@ hand currently present**:
 
 | Hand | Pts | | Hand | Pts |
 |---|---|---|---|---|
-| Royal Flush | 500 | | Straight | 125 |
-| Straight Flush | 375 | | Three of a Kind | 75 |
-| Four of a Kind | 250 | | Two Pair | 50 |
-| Full House | 200 | | One Pair | 25 |
-| Flush | 150 | | High Card | 0 |
+| Five of a Kind | 600 | | Straight | 125 |
+| Royal Flush | 500 | | Three of a Kind | 75 |
+| Straight Flush | 375 | | Two Pair | 50 |
+| Four of a Kind | 250 | | One Pair | 25 |
+| Full House | 200 | | High Card | 0 |
+| Flush | 150 | | | |
 
+Five of a Kind (five matching ranks) is reachable because the bag stacks four
+standard decks, so a rank can repeat across the suits and decks of a single line.
 Flush, Straight, Straight Flush and Royal Flush require a full 5-card line; the
 pair family scores on partial lines too.
 
@@ -99,9 +102,10 @@ Because honors continue the value ladder and share the `honor` suit, runs and
 suited combos span the whole deck (e.g. East-South-West-North-White is a suited
 run that tops the chart — the "Grand Run"). The combos scored per line are: One
 Pair, Two Pair, Three of a Kind, Four of a Kind, Full House (three + a pair),
-Run (five in sequence), Suited (five of one suit), Suited Run, and the Grand
-Run — using the same point values as the classic table above. In this mahjong
-variant the currency is themed as **pearls** rather than gold.
+Run (five in sequence), Suited (five of one suit), Suited Run, the Grand Run, and
+Five of a Kind (five matching tiles, the top combo) — using the same point values
+as the classic table above. In this mahjong variant the currency is themed as
+**pearls** rather than gold.
 
 #### Illustrated tile faces
 
