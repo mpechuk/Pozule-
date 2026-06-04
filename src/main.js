@@ -7,15 +7,64 @@
 
   var canvas, ctx, game = null;
 
-  function startGame(numPlayers) {
-    var defs = [];
-    for (var i = 0; i < numPlayers; i++) {
-      defs.push({ name: "Player " + (i + 1), controller: new P.HumanController() });
-    }
+  // Setup-screen seat configuration: an array of "human" | "ai", one per seat.
+  // Defaults to seat 1 human and the rest AI so the feature is easy to try.
+  var seats = ["human", "ai"];
+
+  function defaultSeat(i) { return i === 0 ? "human" : "ai"; }
+
+  // Build a Game from a seat config (array of "human" | "ai"). Human seats are
+  // named "Player N", AI seats "AI N" — the name shows up in game.message, so
+  // the existing renderer surfaces who's a computer with no render.js change.
+  function startGame(seatConfig) {
+    var defs = seatConfig.map(function (kind, i) {
+      return kind === "ai"
+        ? { name: "AI " + (i + 1), controller: new P.AIController() }
+        : { name: "Player " + (i + 1), controller: new P.HumanController() };
+    });
     game = new P.Game(defs);
     game.onChange = function () { /* render loop redraws every frame */ };
     document.getElementById("setup").style.display = "none";
     canvas.style.display = "block";
+  }
+
+  // Re-render the per-seat Human/AI toggles to match the current `seats` array.
+  function renderSeatConfig() {
+    var host = document.getElementById("seatConfig");
+    if (!host) return;
+    host.innerHTML = "";
+    seats.forEach(function (kind, i) {
+      var row = document.createElement("div");
+      row.className = "seat-row";
+
+      var label = document.createElement("span");
+      label.className = "seat-label";
+      label.textContent = "Seat " + (i + 1);
+      row.appendChild(label);
+
+      var toggle = document.createElement("button");
+      toggle.className = "seat-toggle " + (kind === "ai" ? "ai" : "human");
+      toggle.textContent = kind === "ai" ? "AI" : "Human";
+      toggle.addEventListener("click", function () {
+        seats[i] = seats[i] === "ai" ? "human" : "ai";
+        renderSeatConfig();
+      });
+      row.appendChild(toggle);
+      host.appendChild(row);
+    });
+  }
+
+  // Resize the seat list to `count`, keeping existing choices and filling any
+  // new seats with sensible defaults, then redraw the toggles.
+  function setPlayerCount(count) {
+    var next = [];
+    for (var i = 0; i < count; i++) next.push(seats[i] || defaultSeat(i));
+    seats = next;
+    var buttons = document.querySelectorAll("[data-players]");
+    Array.prototype.forEach.call(buttons, function (b) {
+      b.classList.toggle("active", parseInt(b.getAttribute("data-players"), 10) === count);
+    });
+    renderSeatConfig();
   }
 
   function backToSetup() {
@@ -34,6 +83,8 @@
           performance.now() - game.passStart >= P.rules.PASS_MS) {
         game.passTurn();
       }
+      // Drive any AI seat (drafting, placement, hand-offs). No-op on human turns.
+      if (P.ai) P.ai.tick(game, performance.now());
       P.render.draw(ctx, game);
     }
     requestAnimationFrame(loop);
@@ -180,17 +231,29 @@
       });
     });
 
+    // Player-count buttons now just (re)size the seat list; the Start button
+    // launches the configured table.
     var buttons = document.querySelectorAll("[data-players]");
     Array.prototype.forEach.call(buttons, function (b) {
       b.addEventListener("click", function () {
-        startGame(parseInt(b.getAttribute("data-players"), 10));
+        setPlayerCount(parseInt(b.getAttribute("data-players"), 10));
       });
     });
+    var startBtn = document.getElementById("startBtn");
+    if (startBtn) startBtn.addEventListener("click", function () { startGame(seats); });
 
-    // Optional deep link: ?variant=ponds&players=2 launches straight into a game.
+    // Initialise the seat config to the default 2-seat (Human vs AI) table.
+    setPlayerCount(seats.length);
+
+    // Optional deep link: ?variant=ponds&players=2 launches straight into a game
+    // (seat 1 human, the rest AI, to show the feature off).
     try {
       var players = parseInt(new URLSearchParams(window.location.search).get("players"), 10);
-      if (players >= 1 && players <= 4) startGame(players);
+      if (players >= 1 && players <= 4) {
+        var quick = [];
+        for (var i = 0; i < players; i++) quick.push(defaultSeat(i));
+        startGame(quick);
+      }
     } catch (e) { /* ignore */ }
 
     requestAnimationFrame(loop);
