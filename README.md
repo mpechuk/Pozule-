@@ -16,7 +16,9 @@ No build step, no dependencies — just open `index.html`.
 
 ## How to play
 
-1. Choose **1–4 players** (hotseat — players share the screen).
+1. Choose **Local** or **Online** play, then **1–4 players**. Local is hotseat —
+   players share the screen (set any seat to AI). Online lets people join from
+   other computers (see **Online play** below).
 2. On your turn, click a glowing **poker table** to flip its three face-down
    tokens (the **flop**), or click **the center** ("the muck").
 3. **Draft a rainbow set:** select cards where **no two share a rank** and **no
@@ -43,6 +45,32 @@ No build step, no dependencies — just open `index.html`.
    the tables are re-dealt.
 7. **Game end:** triggered when any player **fills all 25 cells**. Everyone else
    gets **exactly one more turn** (skipped if the table is empty).
+
+## Online play (cross-computer)
+
+Players on different computers can share a table over a peer-to-peer WebRTC
+connection (via [PeerJS](https://peerjs.com/)) — no server to run, the site
+stays a static page.
+
+- **Set your name** at the top of the setup screen, then pick **Online**.
+- **Host:** choose **Host a game**, set how many seats and mark each as **Local**
+  (you, on this screen), **Online** (a remote player) or **AI**. A **room code**
+  and a **Copy invite link** button appear. Share either; when players have
+  joined, press **Start game**. The host runs the authoritative game and the
+  others sync to it.
+- **Join:** choose **Join a game** and enter the room code (or just open the host's
+  invite link, which pre-fills it), then wait in the lobby until the host starts.
+- Each player sees **their own board** in focus and **everyone else's grids** live
+  alongside; tap an opponent's mini board to view it full-size. You can only act on
+  your own turn.
+- Both sides must be on the **same variant** — the invite link carries it. Any
+  online seat nobody claims (or that disconnects mid-game) is played by the AI so
+  the game never stalls. If the host leaves, guests are returned to the setup
+  screen.
+
+Online play needs an internet connection (to reach the PeerJS broker and for
+WebRTC). Local hotseat/AI play still works fully offline, including over
+`file://`.
 
 ## Scoring (at game end)
 
@@ -159,9 +187,12 @@ src/poker.js            # pure poker-hand evaluation for a line
 src/rules.js            # constants + draft/floor/gold rule helpers
 src/player.js           # Player state + controller seam (Human now, AI later)
 src/game.js             # engine: rounds, turns, drafting, placement, scoring
+src/intent.js           # serializable action format + dispatcher (shared by input & net)
+src/serialize.js        # snapshot a Game for the wire / apply one to a local Game
 src/render.js           # canvas drawing + hitbox generation
-src/input.js            # clicks -> game intents
-src/main.js             # bootstrap + render loop
+src/input.js            # clicks -> game intents (applied locally or sent to the host)
+src/net.js              # PeerJS host/guest transport for online play
+src/main.js             # bootstrap + render loop + setup screen (local & online)
 tests/poker.test.html   # open in a browser to run the classic logic tests
 tests/ponds.test.html   # open in a browser to run the ponds (mahjong) tests
 ```
