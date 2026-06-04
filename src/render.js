@@ -293,6 +293,23 @@
         // Sits beside the held tokens so it stays within the placement zoom.
         drawButton(ctx, x + 360, y + 40, 200, 44, "Send to Floor", "floor", {});
       }
+    } else if (g.phase === "PASS_TURN") {
+      // Hand-off prompt + button, hosted in the tray bar above the grid so it
+      // never covers grid cells, score badges, the stats panel or opponents.
+      var remain = Math.max(0, R.PASS_MS - (performance.now() - g.passStart));
+      var secs = Math.ceil(remain / 1000);
+      text(ctx, "Turn over — review your board, then pass to " + g.nextPlayer().name + ".",
+        x + 16, y + 30, "bold 17px Georgia, serif", "#f0e9d2");
+      text(ctx, "Tap Pass turn, or it advances automatically in " + secs + "s.",
+        x + 16, y + 54, "14px Georgia, serif", "rgba(255,255,255,0.65)");
+      drawButton(ctx, x + 20, y + 66, 220, 44, "Pass turn", "passTurn", { primary: true });
+      // Slim countdown bar beside the button (drains toward zero).
+      var pbx = x + 260, pby = y + 84, pbw = 280;
+      var progress = R.PASS_MS > 0 ? remain / R.PASS_MS : 0;
+      roundRect(ctx, pbx, pby, pbw, 8, 4);
+      ctx.fillStyle = "rgba(255,255,255,0.15)"; ctx.fill();
+      roundRect(ctx, pbx, pby, pbw * progress, 8, 4);
+      ctx.fillStyle = "#3fd170"; ctx.fill();
     } else {
       text(ctx, g.currentPlayer().name + ": " + labels().sourcePrompt,
         x + 16, y + h / 2 + 6, "italic 18px Georgia, serif", "rgba(255,255,255,0.8)");

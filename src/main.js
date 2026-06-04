@@ -30,6 +30,10 @@
           performance.now() - game.shuffleStart >= P.rules.SHUFFLE_MS) {
         game.finishShuffle();
       }
+      if (game.phase === "PASS_TURN" &&
+          performance.now() - game.passStart >= P.rules.PASS_MS) {
+        game.passTurn();
+      }
       P.render.draw(ctx, game);
     }
     requestAnimationFrame(loop);
