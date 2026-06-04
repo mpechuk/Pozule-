@@ -83,10 +83,19 @@
         return P.deck.makeToken("ex", c[0], c[1]);
       });
       var points = P.poker.evaluateLine(tokens).points;
-      var cards = ex.cards.map(function (c) {
-        var info = P.deck.suitInfo(c[1]) || { symbol: "?", color: "#333" };
+      var cards = ex.cards.map(function (c, ci) {
+        var rank = c[0], suit = c[1];
+        // When the active variant has a bitmap face for this tile, draw it onto
+        // a little canvas so the guide matches the in-game tiles; paintScoring-
+        // Sprites() fills these in (and again once the artwork finishes loading).
+        if (P.sprites && P.sprites.has(suit, rank)) {
+          return '<canvas class="mini-card sprite-card" width="52" height="68" ' +
+            'data-suit="' + suit + '" data-rank="' + rank + '" ' +
+            'data-key="' + suit + rank + ci + '"></canvas>';
+        }
+        var info = P.deck.suitInfo(suit) || { symbol: "?", color: "#333" };
         return '<span class="mini-card" style="color:' + info.color + '">' +
-          '<span class="mc-rank">' + c[0] + '</span>' +
+          '<span class="mc-rank">' + rank + '</span>' +
           '<span class="mc-suit">' + info.symbol + '</span></span>';
       }).join("");
       return '<div class="score-row">' +
@@ -100,6 +109,22 @@
     host.innerHTML =
       '<p class="choose">Scoring — each line scores its best combo:</p>' +
       '<div class="score-rows">' + rows + '</div>';
+
+    paintScoringSprites();
+  }
+
+  // Paint every sprite-backed mini-card in the scoring guide. Safe to call
+  // repeatedly: it no-ops for cards whose sheet hasn't loaded yet, and is
+  // re-run via P.sprites.onLoad when the artwork arrives.
+  function paintScoringSprites() {
+    if (!P.sprites) return;
+    var cards = document.querySelectorAll("canvas.sprite-card");
+    Array.prototype.forEach.call(cards, function (cv) {
+      var cx = cv.getContext("2d");
+      cx.clearRect(0, 0, cv.width, cv.height);
+      P.sprites.draw(cx, cv.getAttribute("data-suit"), cv.getAttribute("data-rank"),
+        0, 0, cv.width, cv.height, { key: cv.getAttribute("data-key"), radius: 8 });
+    });
   }
 
   // Switching variants reloads the page with the new ?variant= param, so the
@@ -118,6 +143,9 @@
     ctx = canvas.getContext("2d");
 
     P.input.attach(canvas, function () { return game; }, backToSetup);
+
+    // Repaint the setup-screen scoring guide once tile artwork finishes loading.
+    if (P.sprites && P.sprites.onLoad) P.sprites.onLoad(paintScoringSprites);
 
     applyVariant();
 
