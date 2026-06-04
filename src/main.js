@@ -89,7 +89,7 @@
         // a little canvas so the guide matches the in-game tiles; paintScoring-
         // Sprites() fills these in (and again once the artwork finishes loading).
         if (P.sprites && P.sprites.has(suit, rank)) {
-          return '<canvas class="mini-card sprite-card" width="52" height="68" ' +
+          return '<canvas class="mini-card sprite-card" ' +
             'data-suit="' + suit + '" data-rank="' + rank + '" ' +
             'data-key="' + suit + rank + ci + '"></canvas>';
         }
@@ -115,15 +115,23 @@
 
   // Paint every sprite-backed mini-card in the scoring guide. Safe to call
   // repeatedly: it no-ops for cards whose sheet hasn't loaded yet, and is
-  // re-run via P.sprites.onLoad when the artwork arrives.
+  // re-run via P.sprites.onLoad when the artwork arrives. The canvas backing
+  // store is sized to the element's CSS box × devicePixelRatio so the tiles
+  // stay crisp at the larger mobile sizes and on high-DPI screens.
   function paintScoringSprites() {
     if (!P.sprites) return;
+    var dpr = window.devicePixelRatio || 1;
     var cards = document.querySelectorAll("canvas.sprite-card");
     Array.prototype.forEach.call(cards, function (cv) {
+      var w = cv.clientWidth, h = cv.clientHeight;
+      if (!w || !h) return; // not laid out yet
+      var bw = Math.round(w * dpr), bh = Math.round(h * dpr);
+      if (cv.width !== bw || cv.height !== bh) { cv.width = bw; cv.height = bh; }
       var cx = cv.getContext("2d");
       cx.clearRect(0, 0, cv.width, cv.height);
       P.sprites.draw(cx, cv.getAttribute("data-suit"), cv.getAttribute("data-rank"),
-        0, 0, cv.width, cv.height, { key: cv.getAttribute("data-key"), radius: 8 });
+        0, 0, cv.width, cv.height,
+        { key: cv.getAttribute("data-key"), radius: cv.width * 0.12 });
     });
   }
 
