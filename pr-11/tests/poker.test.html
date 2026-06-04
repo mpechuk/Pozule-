@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pozule — logic tests</title>
+  <style>
+    body { font-family: monospace; background: #111; color: #ddd; padding: 20px; }
+    .pass { color: #5dd35d; }
+    .fail { color: #ff6b6b; font-weight: bold; }
+    h1 { color: #f0c040; }
+    #summary { margin: 14px 0; font-size: 18px; }
+  </style>
+</head>
+<body>
+  <h1>Pozule logic tests</h1>
+  <div id="summary"></div>
+  <div id="out"></div>
+
+  <script src="../src/variant.js"></script>
+  <script src="../src/deck.js"></script>
+  <script src="../src/poker.js"></script>
+  <script src="../src/rules.js"></script>
+  <script>
+    var P = window.Pozule;
+    var out = document.getElementById("out");
+    var passed = 0, failed = 0;
+
+    function log(ok, msg) {
+      var d = document.createElement("div");
+      d.className = ok ? "pass" : "fail";
+      d.textContent = (ok ? "PASS  " : "FAIL  ") + msg;
+      out.appendChild(d);
+      if (ok) passed++; else failed++;
+      if (!ok) console.error("FAIL", msg);
+    }
+    function eq(actual, expected, msg) { log(actual === expected, msg + "  (got " + actual + ")"); }
+
+    // Helper: build tokens from "Rs" shorthand, e.g. "AS" "10H".
+    function card(s) {
+      var rank = s.slice(0, s.length - 1);
+      var suit = s.slice(-1);
+      return P.deck.makeToken(s, rank, suit);
+    }
+    function line(arr) { return arr.map(card); }
+    function evalName(arr) { return P.poker.evaluateLine(line(arr)).hand; }
+
+    // --- Poker hand evaluation (full lines) ---
+    eq(evalName(["9S", "9H", "9D", "9C", "9S"]), "Five of a Kind", "five of a kind (stacked decks)");
+    eq(evalName(["10S", "JS", "QS", "KS", "AS"]), "Royal Flush", "royal flush");
+    eq(evalName(["6H", "7H", "8H", "9H", "10H"]), "Straight Flush", "straight flush");
+    eq(evalName(["AS", "2S", "3S", "4S", "5S"]), "Straight Flush", "wheel straight flush");
+    eq(evalName(["9S", "9H", "9D", "9C", "2S"]), "Four of a Kind", "four of a kind");
+    eq(evalName(["KS", "KH", "KD", "2C", "2S"]), "Full House", "full house");
+    eq(evalName(["2H", "5H", "8H", "JH", "KH"]), "Flush", "flush");
+    eq(evalName(["4S", "5H", "6D", "7C", "8S"]), "Straight", "straight");
+    eq(evalName(["AS", "2H", "3D", "4C", "5S"]), "Straight", "wheel straight");
+    eq(evalName(["10S", "JH", "QD", "KC", "AS"]), "Straight", "broadway straight (mixed)");
+    eq(evalName(["7S", "7H", "7D", "2C", "5S"]), "Three of a Kind", "three of a kind");
+    eq(evalName(["8S", "8H", "3D", "3C", "5S"]), "Two Pair", "two pair");
+    eq(evalName(["AS", "AH", "5D", "9C", "KS"]), "One Pair", "one pair");
+    eq(evalName(["2S", "5H", "8D", "JC", "KS"]), "High Card", "high card");
+    // Almost-flush / almost-straight must NOT count when off by one.
+    eq(evalName(["2H", "5H", "8H", "JH", "KS"]), "High Card", "broken flush -> high card");
+    eq(evalName(["4S", "5H", "6D", "7C", "9S"]), "High Card", "broken straight -> high card");
+
+    // --- Partial lines: pair family scores; flush/straight do not ---
+    eq(evalName(["AS"]), "High Card", "single card");
+    eq(evalName(["AS", "AH"]), "One Pair", "partial pair");
+    eq(evalName(["7S", "7H", "7D"]), "Three of a Kind", "partial trips");
+    eq(evalName(["9S", "9H", "9D", "9C"]), "Four of a Kind", "partial quads (4 cards)");
+    eq(evalName(["2H", "3H", "4H", "5H"]), "High Card", "4 suited but not full -> no flush");
+    eq(P.poker.evaluateLine([]).hand, "Empty", "empty line");
+
+    // --- Rainbow rules ---
+    log(P.rules.isRainbowSet(line(["AS", "KH", "QD"])), "rainbow: distinct ranks+suits ok");
+    log(!P.rules.isRainbowSet(line(["AS", "AH"])), "rainbow: shared rank rejected");
+    log(!P.rules.isRainbowSet(line(["AS", "KS"])), "rainbow: shared suit rejected");
+    log(P.rules.canAddToSet(line(["AS", "KH"]), card("QD")), "canAdd: clean add ok");
+    log(!P.rules.canAddToSet(line(["AS", "KH"]), card("AD")), "canAdd: rank clash blocked");
+    log(!P.rules.canAddToSet(line(["AS", "KH"]), card("QS")), "canAdd: suit clash blocked");
+
+    // --- Floor / gold helpers ---
+    eq(P.rules.floorPenalty(7), -140, "full floor penalty = -140");
+    eq(P.rules.floorPenalty(3), -40, "three slots penalty = -40");
+    eq(P.rules.clearCost(7), 30, "clear cost for full floor = 30");
+    eq(P.rules.clearCost(1), 10, "clear cost for first slot = 10");
+    eq(P.rules.factoryCount(2), 5, "2 players -> 5 factories");
+    eq(P.rules.factoryCount(4), 9, "4 players -> 9 factories");
+    eq(P.rules.factoryCount(1), 5, "solo -> 5 factories");
+
+    var sum = document.getElementById("summary");
+    sum.textContent = passed + " passed, " + failed + " failed";
+    sum.className = failed === 0 ? "pass" : "fail";
+  </script>
+</body>
+</html>
