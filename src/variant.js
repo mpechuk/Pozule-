@@ -55,6 +55,7 @@
       draftPrompt: "Choose your rainbow set:",
       placePrompt: "Holding — click the grid to place, or send to floor:",
       shuffleTitle: "Shuffling the deck…",
+      currency: "Gold",
     },
     dom: {
       title: "Pozule — Azul × Poker",
@@ -158,6 +159,7 @@
       draftPrompt: "Choose your set (no two share a kind or a suit):",
       placePrompt: "Holding — click the grid to place, or send to floor:",
       shuffleTitle: "Stirring the waters…",
+      currency: "Pearls",
     },
     dom: {
       title: "Pozule — Ponds",
@@ -169,12 +171,12 @@
       how:
         "Stir a <em>pond</em>, draft a set where no two tiles share a kind or a " +
         "suit, and build matching combos across the rows, columns and diagonals " +
-        "of your 5×5 grid. Overflow lands on the floor; pay gold to keep playing." +
+        "of your 5×5 grid. Overflow lands on the floor; pay pearls to keep playing." +
         "<br><br><strong>Combos (best present in each line scores):</strong><br>" +
-        "Grand Run (100) · Suited Run, five in sequence of one suit (75) · " +
-        "Four of a Kind (50) · Full House, three + a pair (40) · " +
-        "Suited, five of one suit (30) · Run, five in sequence (25) · " +
-        "Three of a Kind (15) · Two Pair (10) · One Pair (5).<br>" +
+        "Grand Run (500) · Suited Run, five in sequence of one suit (375) · " +
+        "Four of a Kind (250) · Full House, three + a pair (200) · " +
+        "Suited, five of one suit (150) · Run, five in sequence (125) · " +
+        "Three of a Kind (75) · Two Pair (50) · One Pair (25).<br>" +
         "Flowers all match one another; seasons all match one another.",
     },
     // Illustrated examples for the setup screen, best -> worst. Combo names are

@@ -51,11 +51,11 @@ hand currently present**:
 
 | Hand | Pts | | Hand | Pts |
 |---|---|---|---|---|
-| Royal Flush | 100 | | Straight | 25 |
-| Straight Flush | 75 | | Three of a Kind | 15 |
-| Four of a Kind | 50 | | Two Pair | 10 |
-| Full House | 40 | | One Pair | 5 |
-| Flush | 30 | | High Card | 0 |
+| Royal Flush | 500 | | Straight | 125 |
+| Straight Flush | 375 | | Three of a Kind | 75 |
+| Four of a Kind | 250 | | Two Pair | 50 |
+| Full House | 200 | | One Pair | 25 |
+| Flush | 150 | | High Card | 0 |
 
 Flush, Straight, Straight Flush and Royal Flush require a full 5-card line; the
 pair family scores on partial lines too.
@@ -100,7 +100,8 @@ suited combos span the whole deck (e.g. East-South-West-North-White is a suited
 run that tops the chart — the "Grand Run"). The combos scored per line are: One
 Pair, Two Pair, Three of a Kind, Four of a Kind, Full House (three + a pair),
 Run (five in sequence), Suited (five of one suit), Suited Run, and the Grand
-Run — using the same point values as the classic table above.
+Run — using the same point values as the classic table above. In this mahjong
+variant the currency is themed as **pearls** rather than gold.
 
 #### Illustrated tile faces
 

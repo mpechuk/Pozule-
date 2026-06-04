@@ -426,7 +426,7 @@
     // Live stats panel (shifted right to clear the row score badges).
     var px = x + cell * R.GRID_SIZE + 58, py = y + 6;
     text(ctx, "▸ " + p.name, px, py, "bold 20px Georgia, serif", "#f0c040");
-    text(ctx, "Gold: " + p.gold, px, py + 28, "bold 20px Georgia, serif", "#f0d24a");
+    text(ctx, labels().currency + ": " + p.gold, px, py + 28, "bold 20px Georgia, serif", "#f0d24a");
     text(ctx, "Lines: " + s.linePoints + "   Penalty: " + s.penalty,
       px, py + 54, "16px Georgia, serif", "#e8e8e0");
     text(ctx, "Projected total: " + s.total, px, py + 78, "bold 18px Georgia, serif", "#9fe0a8");
@@ -454,7 +454,7 @@
       var oy = y + row * 170;
       text(ctx, p.name, ox, oy - 6, "bold 15px Georgia, serif", "#d8d4c4");
       var s = p.score();
-      text(ctx, "G:" + p.gold + "  T:" + s.total, ox + 100, oy - 6,
+      text(ctx, labels().currency.charAt(0) + ":" + p.gold + "  T:" + s.total, ox + 100, oy - 6,
         "13px Georgia, serif", "#bdb9aa");
       // mini grid
       for (var r = 0; r < R.GRID_SIZE; r++) {
@@ -498,7 +498,7 @@
     ctx.lineWidth = 2; ctx.strokeStyle = "#f0c040"; ctx.stroke();
     ctx.restore();
     text(ctx, "Floor is full!", x + w / 2, y + 46, "bold 24px Georgia, serif", "#f0c040", "center");
-    text(ctx, "Pay " + cost + " gold to clear the bottom slot and",
+    text(ctx, "Pay " + cost + " " + labels().currency.toLowerCase() + " to clear the bottom slot and",
       x + w / 2, y + 84, "16px Georgia, serif", "#e8e8e0", "center");
     text(ctx, "drop this card there? (you have " + p.gold + ")",
       x + w / 2, y + 108, "16px Georgia, serif", "#e8e8e0", "center");
@@ -523,7 +523,7 @@
       var res = g.results[i];
       text(ctx, (i + 1) + ". " + res.name, x + 40, ry, "bold 20px Georgia, serif", "#f4f0e2");
       text(ctx, "lines " + res.linePoints + "   penalty " + res.penalty +
-        "   gold " + res.gold + "   =  " + res.total,
+        "   " + labels().currency.toLowerCase() + " " + res.gold + "   =  " + res.total,
         x + 200, ry, "18px Georgia, serif", "#cfe6cf");
       ry += 30;
       var made = res.lines.filter(function (l) { return l.points > 0; })
@@ -575,7 +575,7 @@
 
     if (g.lastDealerReturn) {
       text(ctx, g.lastDealerReturn.name + " pays " + g.lastDealerReturn.cost +
-        " gold — dealer button returns to the center.",
+        " " + labels().currency.toLowerCase() + " — dealer button returns to the center.",
         x + w / 2, y + h - 56, "15px Georgia, serif", "#f0d24a", "center");
     }
 
