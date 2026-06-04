@@ -9,6 +9,7 @@
 
   // Hand name -> point value. Higher is better; also used for tie-break order.
   var HAND_POINTS = {
+    "Five of a Kind": 600,
     "Royal Flush": 500,
     "Straight Flush": 375,
     "Four of a Kind": 250,
@@ -63,7 +64,11 @@
     var straight = full && isStraight(values);
 
     var hand;
-    if (flush && straight) {
+    if (counts[0] === 5) {
+      // Five matching ranks — only reachable when the bag stacks decks (classic)
+      // or holds multiples of a tile (ponds). Tops the chart, above a flush.
+      hand = "Five of a Kind";
+    } else if (flush && straight) {
       // Royal when the straight tops out at Ace high (10-J-Q-K-A).
       var max = Math.max.apply(null, values);
       var hasTen = values.indexOf(10) !== -1;

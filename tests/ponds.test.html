@@ -78,6 +78,9 @@
     // Grand run: E,S,W,N,White dragon are same suit, values 10-14 (tops at 14, has a 10).
     eq(evalName([tile("E", "honor"), tile("S", "honor"), tile("W", "honor"),
                  tile("N", "honor"), tile("Wh", "honor")]), "Royal Flush", "grand run of honors");
+    // Five matching tiles (four copies of a number plus a fifth) top the chart.
+    eq(evalName([tile("7", "dots"), tile("7", "dots"), tile("7", "dots"),
+                 tile("7", "dots"), tile("7", "bam")]), "Five of a Kind", "five sevens");
 
     // --- Flowers / seasons are matches ---
     eq(evalName([tile("Fl", "bonus"), tile("Fl", "bonus")]), "One Pair", "two flowers pair");
