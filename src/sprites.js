@@ -73,6 +73,11 @@
     },
   };
 
+  // Listeners fired whenever a sheet finishes loading, so static screens (e.g.
+  // the setup scoring guide) can repaint once the artwork is ready.
+  var loadListeners = [];
+  function onLoad(cb) { loadListeners.push(cb); }
+
   // Decode each distinct image once, sharing it across sheets that reuse a file
   // (bamboo and honors both come from the combined sheet). `loaded` flips true
   // when the bitmap is ready to blit.
@@ -84,7 +89,10 @@
       rec = IMAGES[s.src] = { loaded: false };
       if (typeof Image !== "undefined") { // browser only; tests stay font-only
         var img = new Image();
-        img.onload = function () { rec.loaded = true; };
+        img.onload = function () {
+          rec.loaded = true;
+          loadListeners.forEach(function (cb) { cb(); });
+        };
         img.src = s.src;
         rec.img = img;
       }
@@ -170,5 +178,8 @@
     return true;
   }
 
-  P.sprites = { has: has, draw: draw, enabled: function () { return ENABLED; } };
+  P.sprites = {
+    has: has, draw: draw, onLoad: onLoad,
+    enabled: function () { return ENABLED; },
+  };
 })(window.Pozule = window.Pozule || {});
