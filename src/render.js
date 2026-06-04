@@ -105,19 +105,26 @@
     ctx.strokeStyle = opts.selected ? "#f0c040" : (opts.active ? "#3da5ff" : "#8a8576");
     ctx.stroke();
     if (token) {
-      var s = deck.suitInfo(token.suit);
-      var col = opts.dim ? "rgba(0,0,0,0.35)" : s.color;
-      ctx.fillStyle = col;
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-      ctx.font = "bold " + Math.floor(h * 0.22) + "px Georgia, serif";
-      ctx.fillText(token.rank, x + 5, y + 4);
-      ctx.font = Math.floor(h * 0.2) + "px Georgia, serif";
-      ctx.fillText(s.symbol, x + 5, y + 4 + h * 0.22);
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.font = "bold " + Math.floor(h * 0.42) + "px Georgia, serif";
-      ctx.fillText(s.symbol, x + w / 2, y + h / 2 + h * 0.04);
+      // Prefer a bitmap tile face when the active variant has one for this
+      // suit/rank (mahjong dots & characters); otherwise draw the text face.
+      var drewSprite = P.sprites &&
+        P.sprites.draw(ctx, token.suit, token.rank, x, y, w, h,
+          { key: token.id, dim: opts.dim });
+      if (!drewSprite) {
+        var s = deck.suitInfo(token.suit);
+        var col = opts.dim ? "rgba(0,0,0,0.35)" : s.color;
+        ctx.fillStyle = col;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.font = "bold " + Math.floor(h * 0.22) + "px Georgia, serif";
+        ctx.fillText(token.rank, x + 5, y + 4);
+        ctx.font = Math.floor(h * 0.2) + "px Georgia, serif";
+        ctx.fillText(s.symbol, x + 5, y + 4 + h * 0.22);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.font = "bold " + Math.floor(h * 0.42) + "px Georgia, serif";
+        ctx.fillText(s.symbol, x + w / 2, y + h / 2 + h * 0.04);
+      }
     }
     ctx.restore();
   }
@@ -460,9 +467,14 @@
           ctx.fill();
           ctx.restore();
           if (tok) {
-            var si = deck.suitInfo(tok.suit);
-            text(ctx, tok.rank, gx + (cell - 2) / 2, gy + (cell - 2) / 2 + 4,
-              "9px Georgia, serif", si.color, "center");
+            var drew = P.sprites &&
+              P.sprites.draw(ctx, tok.suit, tok.rank, gx, gy, cell - 2, cell - 2,
+                { key: tok.id, radius: 2 });
+            if (!drew) {
+              var si = deck.suitInfo(tok.suit);
+              text(ctx, tok.rank, gx + (cell - 2) / 2, gy + (cell - 2) / 2 + 4,
+                "9px Georgia, serif", si.color, "center");
+            }
           }
         }
       }
