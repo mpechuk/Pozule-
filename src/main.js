@@ -47,7 +47,23 @@
     var titleEl = document.getElementById("setupTitle");
     var tagEl = document.getElementById("setupTag");
     var howEl = document.getElementById("setupHow");
-    if (titleEl) titleEl.textContent = dom.h1;
+    // Variants may supply a bitmap logo (dom.logo) to show in place of the
+    // text wordmark; fall back to the plain title when none is provided.
+    if (titleEl) {
+      if (dom.logo) {
+        titleEl.textContent = "";
+        var logo = document.createElement("img");
+        logo.className = "setup-logo";
+        logo.src = dom.logo;
+        logo.alt = dom.h1;
+        // If the artwork is missing/fails to decode, fall back to the wordmark
+        // so the opening screen never renders without a title.
+        logo.onerror = function () { titleEl.textContent = dom.h1; };
+        titleEl.appendChild(logo);
+      } else {
+        titleEl.textContent = dom.h1;
+      }
+    }
     if (tagEl) tagEl.innerHTML = dom.tag;
     if (howEl) howEl.innerHTML = dom.how;
 
