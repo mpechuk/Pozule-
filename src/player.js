@@ -102,13 +102,13 @@
   HumanController.prototype.chooseDraft = function () { /* event-driven */ };
   HumanController.prototype.choosePlacement = function () { /* event-driven */ };
 
+  // An AI seat is the same controller seam as a human one. The actual decisions
+  // are driven from the render loop by P.ai (see ai.js), which reads the public
+  // game state and calls the same engine methods a human's clicks would — so,
+  // like HumanController, these methods are intentionally inert.
   function AIController() { this.type = "ai"; }
-  AIController.prototype.chooseDraft = function () {
-    throw new Error("AIController.chooseDraft not implemented yet");
-  };
-  AIController.prototype.choosePlacement = function () {
-    throw new Error("AIController.choosePlacement not implemented yet");
-  };
+  AIController.prototype.chooseDraft = function () { /* driven by P.ai */ };
+  AIController.prototype.choosePlacement = function () { /* driven by P.ai */ };
 
   P.Player = Player;
   P.HumanController = HumanController;
