@@ -331,6 +331,7 @@
     mode = "host";
     game = new P.Game(defs);
     game.viewSeat = hostSeat;
+    game.controlSeat = hostSeat;   // the host may only ever act for its own seat
     game.onChange = function (g) { P.net.broadcast(P.netstate.serialize(g)); };
     showCanvas();
     P.net.broadcast(P.netstate.serialize(game)); // first state ends guests' lobby
@@ -354,6 +355,7 @@
     if (!game) {
       game = gameFromSnapshot(snapshot);
       game.viewSeat = P.net.seat;
+      game.controlSeat = P.net.seat;   // a guest may only ever act for its own seat
       showCanvas();
     } else {
       P.netstate.apply(game, snapshot);
