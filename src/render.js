@@ -35,7 +35,9 @@
   }
 
   function updateCamera(g) {
-    var zoomed = g.phase === "PLACE" || g.phase === "PAY_GOLD";
+    // Only zoom into placement when it's the board I'm viewing being played, so
+    // a spectator doesn't get yanked into someone else's grid.
+    var zoomed = interactive(g) && (g.phase === "PLACE" || g.phase === "PAY_GOLD");
     var focus = zoomed ? PLACE_FOCUS : FULL_FOCUS;
     var target = camFromRect(focus, zoomed ? 0.95 : 1);
 
@@ -57,6 +59,12 @@
   function reset() { hits = []; }
   function push(h) { h.screen = screenSpace; hits.push(h); }
   function getHits() { return hits; }
+
+  // Which seat's board this client focuses. null (local hotseat) follows the
+  // active player; online clients pin it to their own seat. `interactive`
+  // (it's my turn on the board I'm viewing) gates input and the placement zoom.
+  function viewSeat(g) { return g.viewSeat == null ? g.current : g.viewSeat; }
+  function interactive(g) { return viewSeat(g) === g.current; }
 
   function roundRect(ctx, x, y, w, h, r) {
     if (w <= 0 || h <= 0) { ctx.beginPath(); return; } // nothing to draw
@@ -273,6 +281,9 @@
     ctx.fill();
     ctx.restore();
 
+    // Only the player whose turn it is (on the board I'm viewing) may act;
+    // spectators see the same tray but with inert hitboxes/disabled buttons.
+    var mine = interactive(g);
     if (g.phase === "SELECT_RAINBOW") {
       text(ctx, labels().draftPrompt, x + 16, y + 26, "bold 16px Georgia, serif", "#f0e9d2");
       var tw = 52, th = 74, gap = 12, sx = x + 20, sy = y + 34;
@@ -282,11 +293,11 @@
         var sel = g.takeSet.indexOf(t) !== -1;
         var allowed = sel || R.canAddToSet(g.takeSet, t);
         drawCard(ctx, tx, sy, tw, th, t, { selected: sel, dim: !allowed && !sel });
-        push({ type: "revealToken", token: t, x: tx, y: sy, w: tw, h: th });
+        if (mine) push({ type: "revealToken", token: t, x: tx, y: sy, w: tw, h: th });
       }
       drawButton(ctx, x + w - 360, y + 40, 150, 44, "Take (" + g.takeSet.length + ")",
-        "take", { primary: true, disabled: g.takeSet.length === 0 });
-      drawButton(ctx, x + w - 190, y + 40, 150, 44, "Cancel", "cancelSelection", {});
+        "take", { primary: true, disabled: !mine || g.takeSet.length === 0 });
+      drawButton(ctx, x + w - 190, y + 40, 150, 44, "Cancel", "cancelSelection", { disabled: !mine });
     } else if (g.phase === "PLACE" || g.phase === "PAY_GOLD") {
       text(ctx, labels().placePrompt,
         x + 16, y + 26, "bold 16px Georgia, serif", "#f0e9d2");
@@ -294,11 +305,11 @@
       for (var j = 0; j < g.held.length; j++) {
         var hx = hsx + j * (hw + hgap);
         drawCard(ctx, hx, hsy, hw, hh, g.held[j], { active: j === g.activeHeld });
-        push({ type: "heldToken", index: j, x: hx, y: hsy, w: hw, h: hh });
+        if (mine) push({ type: "heldToken", index: j, x: hx, y: hsy, w: hw, h: hh });
       }
       if (g.held.length > 0) {
         // Sits beside the held tokens so it stays within the placement zoom.
-        drawButton(ctx, x + 360, y + 40, 200, 44, "Send to Floor", "floor", {});
+        drawButton(ctx, x + 360, y + 40, 200, 44, "Send to Floor", "floor", { disabled: !mine });
       }
     } else if (g.phase === "PASS_TURN") {
       // Hand-off prompt + button, hosted in the tray bar above the grid so it
@@ -309,7 +320,7 @@
         x + 16, y + 30, "bold 17px Georgia, serif", "#f0e9d2");
       text(ctx, "Tap Pass turn, or it advances automatically in " + secs + "s.",
         x + 16, y + 54, "14px Georgia, serif", "rgba(255,255,255,0.65)");
-      drawButton(ctx, x + 20, y + 66, 220, 44, "Pass turn", "passTurn", { primary: true });
+      drawButton(ctx, x + 20, y + 66, 220, 44, "Pass turn", "passTurn", { primary: true, disabled: !mine });
       // Slim countdown bar beside the button (drains toward zero).
       var pbx = x + 260, pby = y + 84, pbw = 280;
       var progress = R.PASS_MS > 0 ? remain / R.PASS_MS : 0;
@@ -414,10 +425,11 @@
   }
 
   function drawCurrentBoard(ctx, g) {
-    var p = g.currentPlayer();
+    var p = g.players[viewSeat(g)];
     var x = 30, y = 502, cell = 52;
     var s = p.score();
-    drawGrid(ctx, p, x, y, cell, true, g);
+    // Grid cells are only placement targets when it's my turn on this board.
+    drawGrid(ctx, p, x, y, cell, interactive(g), g);
     drawLineScores(ctx, s, x, y, cell);
 
     var floorX = x, floorY = y + cell * R.GRID_SIZE + 24;
@@ -444,7 +456,9 @@
   }
 
   function drawOpponents(ctx, g) {
-    var others = g.players.filter(function (pl) { return pl.id !== g.current; });
+    // Everyone except the board I'm focusing — so each client sees all other
+    // players' grids live. Tapping one (in online play) spectates it full-size.
+    var others = g.players.filter(function (pl) { return pl.id !== viewSeat(g); });
     var x = 760, y = 506, cell = 17, gap = 18;
     var perRow = 2;
     for (var idx = 0; idx < others.length; idx++) {
@@ -452,7 +466,9 @@
       var col = idx % perRow, row = Math.floor(idx / perRow);
       var ox = x + col * 260;
       var oy = y + row * 170;
-      text(ctx, p.name, ox, oy - 6, "bold 15px Georgia, serif", "#d8d4c4");
+      var turn = p.id === g.current ? " ▸" : "";
+      text(ctx, p.name + turn, ox, oy - 6, "bold 15px Georgia, serif",
+        p.id === g.current ? "#f0c040" : "#d8d4c4");
       var s = p.score();
       text(ctx, labels().currency.charAt(0) + ":" + p.gold + "  T:" + s.total, ox + 100, oy - 6,
         "13px Georgia, serif", "#bdb9aa");
@@ -480,6 +496,11 @@
       }
       text(ctx, "floor " + p.floor.length + "/" + R.FLOOR_SLOTS,
         ox, oy + cell * R.GRID_SIZE + 14, "12px Georgia, serif", "rgba(255,180,180,0.8)");
+
+      // Tap an opponent's mini board to spectate it full-size (online only; the
+      // handler is a no-op in local play). Covers label, grid and floor line.
+      push({ type: "opponent", id: p.id, x: ox - 4, y: oy - 22,
+        w: cell * R.GRID_SIZE + 120, h: cell * R.GRID_SIZE + 40 });
     }
   }
 
@@ -502,8 +523,9 @@
       x + w / 2, y + 84, "16px Georgia, serif", "#e8e8e0", "center");
     text(ctx, "drop this card there? (you have " + p.gold + ")",
       x + w / 2, y + 108, "16px Georgia, serif", "#e8e8e0", "center");
-    drawButton(ctx, x + 40, y + 132, 170, 46, "Pay " + cost, "payYes", { primary: true });
-    drawButton(ctx, x + w - 210, y + 132, 170, 46, "Cancel", "payNo", {});
+    var mine = interactive(g);   // only the active player may resolve their own floor
+    drawButton(ctx, x + 40, y + 132, 170, 46, "Pay " + cost, "payYes", { primary: true, disabled: !mine });
+    drawButton(ctx, x + w - 210, y + 132, 170, 46, "Cancel", "payNo", { disabled: !mine });
   }
 
   function drawGameOver(ctx, g) {

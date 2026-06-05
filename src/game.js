@@ -40,6 +40,11 @@
     this.startPlayer = 0;
     this.round = 1;
 
+    // Which seat's board the renderer focuses. null = follow the active player
+    // (local hotseat behavior). Online clients pin this to their own seat so
+    // each player sees their own board, with opponents shown alongside.
+    this.viewSeat = null;
+
     this.endTriggered = false;
     this.finalNeed = 0;
     this.finalDone = 0;
