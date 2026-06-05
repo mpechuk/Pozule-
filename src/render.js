@@ -313,9 +313,8 @@
         drawCard(ctx, tx, sy, tw, th, t, { selected: sel, dim: !allowed && !sel });
         if (mine) push({ type: "revealToken", token: t, x: tx, y: sy, w: tw, h: th });
       }
-      drawButton(ctx, x + w - 360, y + 40, 150, 44, "Take (" + g.takeSet.length + ")",
+      drawButton(ctx, x + w - 190, y + 40, 150, 44, "Take (" + g.takeSet.length + ")",
         "take", { primary: true, disabled: !mine || g.takeSet.length === 0 });
-      drawButton(ctx, x + w - 190, y + 40, 150, 44, "Cancel", "cancelSelection", { disabled: !mine });
     } else if (g.phase === "PLACE" || g.phase === "PAY_GOLD") {
       text(ctx, labels().placePrompt,
         x + 16, y + 26, "bold 16px Georgia, serif", "#f0e9d2");
