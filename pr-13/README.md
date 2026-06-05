@@ -55,17 +55,20 @@ stays a static page.
 - **Set your name** at the top of the setup screen, then pick **Online**.
 - **Host:** choose **Host a game**, set how many seats and mark each as **Local**
   (you, on this screen), **Online** (a remote player) or **AI**. A **room code**
-  and a **Copy invite link** button appear. Share either; when players have
-  joined, press **Start game**. The host runs the authoritative game and the
-  others sync to it.
+  and a **Copy invite link** button appear. Share either; once every **Online**
+  seat has a player joined, press **Start game**. The host runs the authoritative
+  game and the others sync to it. (Start waits until all Online seats are filled,
+  so a bot never silently takes a partner's place — if you want a bot, set the
+  seat to **AI**.)
 - **Join:** choose **Join a game** and enter the room code (or just open the host's
   invite link, which pre-fills it), then wait in the lobby until the host starts.
 - Each player sees **their own board** in focus and **everyone else's grids** live
   alongside; tap an opponent's mini board to view it full-size. You can only act on
   your own turn.
-- Both sides must be on the **same variant** — the invite link carries it. Any
-  online seat nobody claims (or that disconnects mid-game) is played by the AI so
-  the game never stalls.
+- Both sides must be on the **same variant** — the invite link carries it. Online
+  seats are only ever played by the humans who join them; a seat that **disconnects
+  mid-game** is covered by the AI so the game never stalls (and handed back when the
+  player rejoins).
 - **Reconnecting:** each browser keeps a stable client id, so if a player drops
   they automatically rejoin **the same seat** and continue — the AI only fills in
   while they're away. (If the host itself leaves, guests return to the setup
