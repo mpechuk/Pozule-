@@ -45,6 +45,12 @@
     // each player sees their own board, with opponents shown alongside.
     this.viewSeat = null;
 
+    // Which seat this client may act for. null = this machine controls whoever
+    // is current (local hotseat). Online clients set it to their own seat so the
+    // renderer never lets them draft/place for another player, even while
+    // spectating that player's board. Purely local: never serialized.
+    this.controlSeat = null;
+
     this.endTriggered = false;
     this.finalNeed = 0;
     this.finalDone = 0;

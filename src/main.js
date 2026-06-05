@@ -168,10 +168,25 @@
     el("setup").style.display = "flex";
   }
 
+  // Online: keep every client's main board focused on the active player, so the
+  // spotlight follows the turn automatically (the finishing player's board stays
+  // up through the PASS_TURN hand-off, then snaps to whoever plays next). A
+  // manual spectate (tapping an opponent) holds only until the turn moves on,
+  // when we snap back to the new current player. Local hotseat already follows
+  // current via viewSeat === null, so it's left untouched.
+  function followCurrentSeat(g) {
+    if (mode === "local") return;
+    if (g._followedSeat !== g.current) {
+      g._followedSeat = g.current;
+      g.viewSeat = g.current;
+    }
+  }
+
   function loop() {
     if (game) {
       if (mode === "guest") {
         // Render-only: the host owns the engine, timers and AI.
+        followCurrentSeat(game);
         P.render.draw(ctx, game);
       } else {
         if (game.phase === "SHUFFLING" &&
@@ -184,6 +199,7 @@
         }
         // Drive any AI seat (drafting, placement, hand-offs). No-op on human turns.
         if (P.ai) P.ai.tick(game, performance.now());
+        followCurrentSeat(game);
         P.render.draw(ctx, game);
       }
     }
@@ -330,7 +346,8 @@
     });
     mode = "host";
     game = new P.Game(defs);
-    game.viewSeat = hostSeat;
+    game.viewSeat = hostSeat;       // starting focus; the loop then follows the turn
+    game.controlSeat = hostSeat;    // the host may only ever act for its own seat
     game.onChange = function (g) { P.net.broadcast(P.netstate.serialize(g)); };
     showCanvas();
     P.net.broadcast(P.netstate.serialize(game)); // first state ends guests' lobby
@@ -353,7 +370,8 @@
   function onGuestState(snapshot) {
     if (!game) {
       game = gameFromSnapshot(snapshot);
-      game.viewSeat = P.net.seat;
+      game.viewSeat = P.net.seat;       // starting focus; the loop then follows the turn
+      game.controlSeat = P.net.seat;    // a guest may only ever act for its own seat
       showCanvas();
     } else {
       P.netstate.apply(game, snapshot);
