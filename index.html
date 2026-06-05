@@ -20,24 +20,64 @@
           </div>
         </div>
         <p class="how" id="setupHow"></p>
-        <div id="scoringGuide" class="scoring-guide"></div>
-        <p class="choose">Choose number of players:</p>
-        <div class="player-buttons">
-          <button data-players="1">1</button>
-          <button data-players="2">2</button>
-          <button data-players="3">3</button>
-          <button data-players="4">4</button>
+
+        <p class="choose">Your name:</p>
+        <input id="playerName" class="name-input" type="text" maxlength="16"
+          placeholder="Player" />
+
+        <p class="choose">Where are you playing?</p>
+        <div class="mode-buttons">
+          <button data-mode="local" class="active">Local (this screen)</button>
+          <button data-mode="online">Online (other computers)</button>
         </div>
-        <p class="choose">Set each seat — tap to switch Human / AI:</p>
-        <div id="seatConfig" class="seat-config"></div>
+
+        <div id="onlineRolePanel" style="display:none">
+          <div class="role-buttons">
+            <button data-role="host">Host a game</button>
+            <button data-role="guest">Join a game</button>
+          </div>
+        </div>
+
+        <div id="tablePanel">
+          <p class="choose">Choose number of players:</p>
+          <div class="player-buttons">
+            <button data-players="1">1</button>
+            <button data-players="2">2</button>
+            <button data-players="3">3</button>
+            <button data-players="4">4</button>
+          </div>
+          <p class="choose" id="seatPrompt">Set each seat — tap to switch Human / AI:</p>
+          <div id="seatConfig" class="seat-config"></div>
+        </div>
+
+        <div id="roomPanel" style="display:none">
+          <p class="choose">Room code: <span id="roomCode" class="room-code">…</span></p>
+          <button id="copyLink" class="link-btn">Copy invite link</button>
+          <div id="lobbyHost" class="lobby"></div>
+          <p id="hostNotice" class="hint"></p>
+        </div>
+
         <button id="startBtn" class="start-btn">Start game</button>
-        <p class="hint">Hotseat — humans share the screen and take turns. Set
-          every seat to AI to sit back and watch.</p>
+
+        <div id="joinPanel" style="display:none">
+          <p class="choose">Enter room code:</p>
+          <input id="joinCode" class="name-input code-input" type="text" maxlength="5"
+            placeholder="ABCDE" />
+          <button id="joinBtn" class="start-btn">Join</button>
+          <div id="lobbyGuest" class="lobby"></div>
+        </div>
+
+        <p class="hint">Local is hotseat — humans share the screen and take turns
+          (set every seat to AI to watch). Online lets players join from other
+          computers via a room code.</p>
+
+        <div id="scoringGuide" class="scoring-guide"></div>
       </div>
     </div>
     <canvas id="board"></canvas>
   </div>
 
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <script src="src/variant.js"></script>
   <script src="src/deck.js"></script>
   <script src="src/sprites.js"></script>
@@ -46,8 +86,11 @@
   <script src="src/player.js"></script>
   <script src="src/game.js"></script>
   <script src="src/ai.js"></script>
+  <script src="src/intent.js"></script>
+  <script src="src/serialize.js"></script>
   <script src="src/render.js"></script>
   <script src="src/input.js"></script>
+  <script src="src/net.js"></script>
   <script src="src/main.js"></script>
 </body>
 </html>
