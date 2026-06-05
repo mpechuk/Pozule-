@@ -354,6 +354,20 @@
 
   // --- Player boards ---------------------------------------------------------
 
+  // A pulsing gold frame drawn around the active player's grid so it's obvious
+  // at a glance whose turn it is — on the focused board and in the mini boards.
+  function drawActiveFrame(ctx, x, y, size, pad, radius) {
+    var pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
+    ctx.save();
+    roundRect(ctx, x - pad, y - pad, size + pad * 2, size + pad * 2, radius);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = "rgba(240,192,64," + (0.6 + 0.35 * pulse).toFixed(3) + ")";
+    ctx.shadowColor = "rgba(240,192,64,0.85)";
+    ctx.shadowBlur = 10 + 8 * pulse;
+    ctx.stroke();
+    ctx.restore();
+  }
+
   function drawGrid(ctx, player, x, y, cell, interactive, g) {
     var n = R.GRID_SIZE;
     for (var r = 0; r < n; r++) {
@@ -446,6 +460,9 @@
     var p = g.players[viewSeat(g)];
     var x = 30, y = 502, cell = 52;
     var s = p.score();
+    var active = p.id === g.current;
+    // Highlight the grid when the focused board belongs to the active player.
+    if (active) drawActiveFrame(ctx, x, y, cell * R.GRID_SIZE, 8, 12);
     // Grid cells are only placement targets when it's my turn on this board.
     drawGrid(ctx, p, x, y, cell, interactive(g), g);
     drawLineScores(ctx, s, x, y, cell);
@@ -455,7 +472,8 @@
 
     // Live stats panel (shifted right to clear the row score badges).
     var px = x + cell * R.GRID_SIZE + 58, py = y + 6;
-    text(ctx, "▸ " + p.name, px, py, "bold 20px Georgia, serif", "#f0c040");
+    text(ctx, (active ? "▸ " : "") + p.name, px, py, "bold 20px Georgia, serif",
+      active ? "#f0c040" : "#cfcabb");
     text(ctx, labels().currency + ": " + p.gold, px, py + 28, "bold 20px Georgia, serif", "#f0d24a");
     text(ctx, "Lines: " + s.linePoints + "   Penalty: " + s.penalty,
       px, py + 54, "16px Georgia, serif", "#e8e8e0");
@@ -484,12 +502,15 @@
       var col = idx % perRow, row = Math.floor(idx / perRow);
       var ox = x + col * 260;
       var oy = y + row * 170;
-      var turn = p.id === g.current ? " ▸" : "";
+      var active = p.id === g.current;
+      var turn = active ? " ▸" : "";
       text(ctx, p.name + turn, ox, oy - 6, "bold 15px Georgia, serif",
-        p.id === g.current ? "#f0c040" : "#d8d4c4");
+        active ? "#f0c040" : "#d8d4c4");
       var s = p.score();
       text(ctx, labels().currency.charAt(0) + ":" + p.gold + "  T:" + s.total, ox + 100, oy - 6,
         "13px Georgia, serif", "#bdb9aa");
+      // Frame the active player's mini grid so their turn reads across all boards.
+      if (active) drawActiveFrame(ctx, ox, oy, cell * R.GRID_SIZE, 3, 5);
       // mini grid
       for (var r = 0; r < R.GRID_SIZE; r++) {
         for (var c = 0; c < R.GRID_SIZE; c++) {
