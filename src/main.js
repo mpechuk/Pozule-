@@ -253,6 +253,7 @@
         P.net.assignSeat(conn, seat, lobbySeats());
         P.net.sendLobby(lobbySeats());
         renderHostLobby();
+        setHostNotice("");   // a seat just filled; clear any "waiting" message
         if (game) P.net.broadcast(P.netstate.serialize(game)); // (re)joiner gets the board
       },
       onIntent: function (conn, msg) {
@@ -283,15 +284,40 @@
     });
   }
 
+  // Show a transient message in the host's room panel (e.g. why Start is blocked).
+  function setHostNotice(text) {
+    var n = el("hostNotice");
+    if (n) n.textContent = text || "";
+  }
+
   function startHostGame() {
+    // The host must occupy a local seat, and every online seat must have a
+    // connected player — otherwise a bot would silently take a human's place.
     var firstLocal = seats.indexOf("local");
-    if (firstLocal < 0) firstLocal = 0;
+    if (firstLocal < 0) {
+      setHostNotice("Set one seat to “You / Local” so you have a place at the table.");
+      return;
+    }
+    var waiting = [];
+    seats.forEach(function (kind, i) {
+      if (kind === "online" && !(seatClient[i] && connectedClients[seatClient[i]])) {
+        waiting.push(i + 1);
+      }
+    });
+    if (waiting.length) {
+      setHostNotice("Waiting for a player to join seat " + waiting.join(", ") +
+        " — share the room code, or set the seat to AI to play with a bot.");
+      return;
+    }
+    setHostNotice("");
+
     hostSeat = firstLocal;
     var used = [];
     var defs = seats.map(function (kind, i) {
       var name;
-      // Unclaimed online seats fall back to AI so no turn can stall.
-      if (kind === "ai" || (kind === "online" && !seatClient[i])) {
+      // Online seats are always the human who joined them (validated above);
+      // only seats the host explicitly set to AI get a bot.
+      if (kind === "ai") {
         name = randomAiName(used); used.push(name);
         return { name: name, controller: new P.AIController() };
       }
