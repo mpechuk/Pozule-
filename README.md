@@ -65,8 +65,11 @@ stays a static page.
   your own turn.
 - Both sides must be on the **same variant** — the invite link carries it. Any
   online seat nobody claims (or that disconnects mid-game) is played by the AI so
-  the game never stalls. If the host leaves, guests are returned to the setup
-  screen.
+  the game never stalls.
+- **Reconnecting:** each browser keeps a stable client id, so if a player drops
+  they automatically rejoin **the same seat** and continue — the AI only fills in
+  while they're away. (If the host itself leaves, guests return to the setup
+  screen.)
 
 Online play needs an internet connection (to reach the PeerJS broker and for
 WebRTC). Local hotseat/AI play still works fully offline, including over
