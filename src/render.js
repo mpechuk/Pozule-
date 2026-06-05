@@ -190,6 +190,12 @@
     var rows = Math.ceil(count / cols);
     var cw = region.w / cols, ch = region.h / rows;
     var now = performance.now();
+    // Only the player whose turn it is (on the board I'm viewing) may draft a
+    // source; spectators/off-turn clients see the ponds but can't pick them.
+    // Without this gate the host could click a factory while it's a remote
+    // player's turn and the engine would apply it as that player, desyncing
+    // both screens (notably the first turn after a remote held the dealer).
+    var mine = interactive(g);
 
     for (var i = 0; i < count; i++) {
       var f = g.factories[i];
@@ -204,7 +210,7 @@
       ctx.save();
       ctx.beginPath();
       ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-      var selectable = g.phase === "SELECT_SOURCE" && f.tokens.length > 0;
+      var selectable = mine && g.phase === "SELECT_SOURCE" && f.tokens.length > 0;
       ctx.fillStyle = f.tokens.length === 0 ? t.factoryEmpty : t.factoryFill;
       ctx.fill();
       ctx.lineWidth = 6;
@@ -248,7 +254,8 @@
     ctx.fillStyle = theme().centerFill;
     ctx.fill();
     ctx.lineWidth = 4;
-    var selectable = g.phase === "SELECT_SOURCE" && g.center.length > 0;
+    // Gate center-take to the active player on the viewed board (see drawFactories).
+    var selectable = interactive(g) && g.phase === "SELECT_SOURCE" && g.center.length > 0;
     ctx.strokeStyle = selectable ? "#f0c040" : theme().factoryStroke;
     ctx.stroke();
     ctx.restore();
