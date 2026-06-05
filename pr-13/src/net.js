@@ -92,7 +92,8 @@
 
   // --- Guest ----------------------------------------------------------------
 
-  // cb: { name, onAssign(msg), onLobby(msg), onState(snapshot), onError(why), onHostLeave() }
+  // cb: { name, clientId, onAssign(msg), onLobby(msg), onState(snapshot),
+  //       onError(why), onHostLeave() }
   function guestJoin(code, cb) {
     if (!available()) { if (cb.onError) cb.onError("PeerJS unavailable"); return; }
     role = "guest";
@@ -106,7 +107,9 @@
       hostConn = peer.connect(ID_PREFIX + code.toUpperCase(), { reliable: true });
 
       hostConn.on("open", function () {
-        send(hostConn, { type: "hello", v: V, name: cb.name || "Player" });
+        // A stable clientId lets the host recognize us on reconnect and hand
+        // back the same seat instead of treating us as a brand-new player.
+        send(hostConn, { type: "hello", v: V, name: cb.name || "Player", clientId: cb.clientId });
       });
       hostConn.on("data", function (msg) {
         if (!msg) return;
