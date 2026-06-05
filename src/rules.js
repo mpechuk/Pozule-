@@ -12,7 +12,7 @@
   var GRID_SIZE = 5;
   var FLOP_SIZE = 3;
   var BAG_DECKS = 4;
-  var SHUFFLE_MS = 5000; // between-rounds shuffling animation
+  var SHUFFLE_MS = 1000; // between-rounds shuffling animation
   var PASS_MS = 5000;    // hotseat hand-off: auto-advance if "Pass turn" isn't tapped
 
   // Azul scaling: 2*players + 1 factories (solo uses 5).
