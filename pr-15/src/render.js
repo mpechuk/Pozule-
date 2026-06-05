@@ -61,10 +61,21 @@
   function getHits() { return hits; }
 
   // Which seat's board this client focuses. null (local hotseat) follows the
-  // active player; online clients pin it to their own seat. `interactive`
-  // (it's my turn on the board I'm viewing) gates input and the placement zoom.
+  // active player; online clients pin it to their own seat but may temporarily
+  // spectate an opponent's board.
   function viewSeat(g) { return g.viewSeat == null ? g.current : g.viewSeat; }
-  function interactive(g) { return viewSeat(g) === g.current; }
+
+  // Whether this client controls `seat`. In local hotseat play `controlSeat` is
+  // null, meaning this machine drives whoever is current. Online clients set it
+  // to their own seat so they can never act for anybody else — even while
+  // spectating that player's board.
+  function controls(g, seat) { return g.controlSeat == null || g.controlSeat === seat; }
+
+  // `interactive` gates input and the placement zoom: it's the active player's
+  // board I'm viewing AND I control that seat. The control check stops a
+  // spectator (e.g. the host viewing a remote player's grid) from drafting or
+  // placing on that player's behalf.
+  function interactive(g) { return viewSeat(g) === g.current && controls(g, g.current); }
 
   function roundRect(ctx, x, y, w, h, r) {
     if (w <= 0 || h <= 0) { ctx.beginPath(); return; } // nothing to draw
